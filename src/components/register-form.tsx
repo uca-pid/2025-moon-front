@@ -21,7 +21,7 @@ export function RegisterForm({
     <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Registrate</CardTitle>
+          <CardTitle>Regístrate</CardTitle>
           <CardDescription>
             Solo necesitamos que completes algunos datos antes de que tu cuenta
             este lista.
@@ -35,7 +35,7 @@ export function RegisterForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="mail@example.com"
                   required
                 />
               </div>
@@ -56,14 +56,11 @@ export function RegisterForm({
                 <Input id="confirm-password" type="password" required />
               </div>
               <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Checkbox checked={mechanic} onCheckedChange={setMechanic} />
-                  <Label
-                    htmlFor="mechanic-register"
-                    className="underline underline-offset-4 ml-2"
-                  >
+                <div className="flex items-center gap-2">
+                  <Checkbox checked={mechanic} onCheckedChange={() => setMechanic(!mechanic)} />
+                  <p>
                     ¿Quieres registrarte como mecanico?
-                  </Label>
+                  </p>
                 </div>
               </div>
               <div className="grid gap-3">

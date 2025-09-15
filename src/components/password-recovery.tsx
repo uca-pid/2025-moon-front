@@ -8,42 +8,49 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function PasswordRecoveryForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [emailSent, setEmailSent] = useState(true);
+  const [emailSent, setEmailSent] = useState(false);
+  const navigate = useNavigate();
+  
   return (
     <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
       <Card>
-        {emailSent ? (
-          <div>
+        {!emailSent ? (
+          <div className="flex flex-col gap-4">
             <CardHeader>
               <CardTitle>Recupere su contraseña</CardTitle>
               <CardDescription>Ingrese su Email</CardDescription>
             </CardHeader>
             <CardContent>
-              <form>
+              <form onSubmit={() => setEmailSent(true)}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-3">
-                    <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="m@example.com"
+                      placeholder="mail@example.com"
                       required
                     />
                   </div>
                   <div className="flex flex-col gap-3">
                     <Button
-                      type="button"
-                      onClick={() => setEmailSent(false)}
+                      type="submit"
                       className="w-full"
                     >
                       Enviar mail para recuperar su contraseña.
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => navigate('/login')}
+                    >
+                      Volver
                     </Button>
                   </div>
                 </div>
