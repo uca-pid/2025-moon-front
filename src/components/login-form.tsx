@@ -1,73 +1,83 @@
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
+import { login } from '@/services/users'
 
 export function LoginForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
-  const [showPassword, setShowPassword] = useState(false);
+}: React.ComponentProps<'div'>) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+
+  const onLogin = async (e) => {
+    e.preventDefault()
+    await login(email, password)
+  }
+
   return (
-    <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
+    <div className={cn('flex flex-col gap-6 w-xl', className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle>Bienvenido a Estaller</CardTitle>
         </CardHeader>
         <CardContent>
           <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
+            <div className='flex flex-col gap-6'>
+              <div className='grid gap-3'>
+                <Label htmlFor='email'>Email</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="mail@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  id='email'
+                  type='email'
+                  placeholder='mail@example.com'
                   required
                 />
               </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Contraseña</Label>
+              <div className='grid gap-3'>
+                <div className='flex items-center'>
+                  <Label htmlFor='password'>Contraseña</Label>
                   <a
-                    href="/passwordRecovery"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    href='/passwordRecovery'
+                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
                   >
                     Olvidaste tu contraseña?
                   </a>
                 </div>
-                <div className="relative">
+                <div className='relative'>
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
+                    id='password'
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="pr-10"
+                    className='pr-10'
                   />
                   <button
-                    type="button"
+                    type='button'
                     onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    aria-label={
+                      showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                    }
                     aria-pressed={showPassword}
-                    className="absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+                    className='absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground'
                   >
                     {showPassword ? (
-                      <Eye className="h-4 w-4" />
+                      <Eye className='h-4 w-4' />
                     ) : (
-                      <EyeOff className="h-4 w-4" />
+                      <EyeOff className='h-4 w-4' />
                     )}
                   </button>
                 </div>
               </div>
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
+              <div className='flex flex-col gap-3'>
+                <Button onClick={onLogin} className='w-full'>
                   Iniciar sesión
                 </Button>
                 {/* <Button variant="outline" className="w-full">
@@ -75,9 +85,9 @@ export function LoginForm({
                 </Button> */}
               </div>
             </div>
-            <div className="mt-4 text-center text-sm">
-              No tenés una cuenta?{" "}
-              <a href="/register" className="underline underline-offset-4">
+            <div className='mt-4 text-center text-sm'>
+              No tenés una cuenta?{' '}
+              <a href='/register' className='underline underline-offset-4'>
                 Registrate
               </a>
             </div>
@@ -85,5 +95,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
