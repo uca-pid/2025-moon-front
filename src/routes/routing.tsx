@@ -5,6 +5,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedResolver } from "./Resolvers/ProtectedResolver";
 import { Home } from "@/pages/Home";
 import { Appointments } from "@/pages/Appointments";
+import { RoleResolver } from "./Resolvers/RoleResolver";
+import { UserRoles } from "@/zustand/session/session.types";
 
 export const Routing = () => {
   return (
@@ -15,8 +17,10 @@ export const Routing = () => {
       <Route path="/passwordRecovery" element={<PasswordRecovery />} />
       <Route element={<ProtectedResolver redirectPath="/login" />}>
 
-        <Route path="/home" element={<Home />} />
-        <Route path="/appointments" element={<Appointments />} />
+        <Route element={<RoleResolver role={UserRoles.USER} redirectPath="/login" />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/appointments" element={<Appointments />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<div>404 - Not Found</div>} />

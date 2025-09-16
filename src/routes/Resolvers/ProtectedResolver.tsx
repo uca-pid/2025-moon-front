@@ -1,12 +1,13 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import { useStore } from '@/zustand/store';
 
 interface Props {
   redirectPath: string;
 }
 
 export const ProtectedResolver = ({ redirectPath }: Props) => {
-  // TODO: implementar un validator de token
-  if (false) {
+  const { user } = useStore()
+  if (user.expiresAt && user.expiresAt.date < new Date()) {
     return <Navigate to={redirectPath} />;
   } else {
     return <Outlet />;

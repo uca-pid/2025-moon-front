@@ -6,6 +6,14 @@ import { Label } from '@/components/ui/label'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
 import { login } from '@/services/users'
+import { useStore } from '@/zustand/store'
+import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
+import type { User } from '@/zustand/session/session.types'
+import { useNavigate } from 'react-router-dom'
+
+interface LoginResponse {
+  token: string
+}
 
 export function LoginForm({
   className,
@@ -14,10 +22,35 @@ export function LoginForm({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-
-  const onLogin = async (e) => {
+  const { login: loginStore } = useStore()
+  const navigate = useNavigate()
+  
+  const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    await login(email, password)
+    try {
+      const response: LoginResponse = await login(email, password)
+
+      const userDecoded = decodeJwtPayload(response.token) as unknown as User
+      console.log(userDecoded)
+      if (userDecoded) {
+        const expiresAt = getExpirationDate(userDecoded.exp as number)
+        loginStore({
+          ...userDecoded,
+          id: userDecoded.id,
+          fullName: userDecoded.fullName,
+          email: userDecoded.email,
+          userRole: userDecoded.userRole,
+          expiresAt,
+          workshopName: userDecoded.workshopName,
+          address: userDecoded.address,
+        })
+      }
+
+      navigate('/home')
+
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   return (
@@ -27,7 +60,7 @@ export function LoginForm({
           <CardTitle>Bienvenido a Estaller</CardTitle>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={onLogin}>
             <div className='flex flex-col gap-6'>
               <div className='grid gap-3'>
                 <Label htmlFor='email'>Email</Label>
@@ -77,7 +110,7 @@ export function LoginForm({
                 </div>
               </div>
               <div className='flex flex-col gap-3'>
-                <Button onClick={onLogin} className='w-full'>
+                <Button type='submit' className='w-full'>
                   Iniciar sesión
                 </Button>
                 {/* <Button variant="outline" className="w-full">

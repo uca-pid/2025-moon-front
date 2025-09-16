@@ -1,7 +1,7 @@
-import axios from 'axios'
+import { post } from '@/utils/rest-api'
 
 export const login = (email: string, password: string) => {
-  return axios.post('http://localhost:3001/users/login', {
+  return post('/users/login', {
     email,
     password,
   })
@@ -15,7 +15,7 @@ export const register = (
   workshopName?: string,
   address?: string
 ) => {
-  return axios.post('http://localhost:3001/users', {
+  return post('/users', {
     email,
     fullName,
     password,

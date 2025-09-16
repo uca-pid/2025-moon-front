@@ -1,24 +1,31 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useStore } from '@/zustand/store';
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 
 interface Props {
   children: React.ReactElement;
 }
 
 export const UserResolver: React.FC<Props> = ({ children }) => {
-  const [isFetchingUser, setIsFetchingUser] = useState(true);
+  const { user } = useStore();
+  const location = useLocation();
 
-  const returnedComponent = useMemo(() => {
-    if (isFetchingUser) {
-      return <div>Loading...</div>;
+  const hasHydrated = useStore.persist?.hasHydrated?.() ?? true;
+  if (!hasHydrated) return <div>Loading...</div>;
+
+  const isAuthenticated = Boolean(user?.id) && Boolean(user?.expiresAt) && user.expiresAt!.date > new Date();
+
+  const routesDeflect = [
+    '/login',
+    '/register',
+    '/passwordRecovery',
+  ]
+  
+  if (isAuthenticated) {
+    if (routesDeflect.includes(location.pathname)) {
+      return <Navigate to={'/home'} replace />;
     }
+  }
 
-    return children;
-  }, [isFetchingUser, children]);
-
-  useEffect(() => {
-    // TODO: implementar un validator de token
-    setIsFetchingUser(false);
-  }, []);
-
-  return returnedComponent;
+  return children;
 };
