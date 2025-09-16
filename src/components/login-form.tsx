@@ -77,7 +77,7 @@ export function LoginForm({
                 <div className='flex items-center'>
                   <Label htmlFor='password'>Contraseña</Label>
                   <a
-                    href='/passwordRecovery'
+                    onClick={() => navigate('/passwordRecovery')}
                     className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
                   >
                     Olvidaste tu contraseña?
@@ -120,7 +120,7 @@ export function LoginForm({
             </div>
             <div className='mt-4 text-center text-sm'>
               No tenés una cuenta?{' '}
-              <a href='/register' className='underline underline-offset-4'>
+              <a onClick={() => navigate('/register')} className='underline underline-offset-4'>
                 Registrate
               </a>
             </div>
