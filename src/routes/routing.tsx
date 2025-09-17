@@ -8,6 +8,7 @@ import { Appointments } from "@/pages/Appointments";
 import { RoleResolver } from "./Resolvers/RoleResolver";
 import { UserRoles } from "@/zustand/session/session.types";
 import { Profile } from "@/pages/Profile";
+import { Shifts } from "@/pages/Shifts";
 
 export const Routing = () => {
   return (
@@ -23,6 +24,9 @@ export const Routing = () => {
         <Route path="/profile" element={<Profile />} />
         <Route element={<RoleResolver role={UserRoles.USER} redirectPath="/login" />}>
           <Route path="/appointments" element={<Appointments />} />
+        </Route>
+        <Route element={<RoleResolver role={UserRoles.MECHANIC} redirectPath="/login" />}>
+          <Route path="/shifts" element={<Shifts />} />
         </Route>
       </Route>
 

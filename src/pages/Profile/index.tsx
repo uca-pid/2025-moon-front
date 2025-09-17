@@ -1,4 +1,3 @@
-import { NavBar } from "@/components/NavBar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -8,6 +7,7 @@ import { useStore } from "@/zustand/store"
 import { useMemo, useState } from "react"
 import { UserRoles } from "@/zustand/session/session.types"
 import { LogOut } from "lucide-react"
+import { Container } from "@/components/Container"
 
 export const Profile = () => {
   const user = useStore((state) => state.user)
@@ -92,8 +92,7 @@ export const Profile = () => {
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col">
-      <NavBar />
+    <Container>
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
@@ -227,6 +226,6 @@ export const Profile = () => {
           </Button>
         </div>
       </div>
-    </div>
+    </Container>
   )
 }
