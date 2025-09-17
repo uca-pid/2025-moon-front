@@ -1,7 +1,7 @@
 import type { StateCreator } from 'zustand';
 
 import type { SessionState, User } from './session.types';
-import { sessionInitialState } from './session.types';
+import { sessionInitialState, userInitialState } from './session.types';
 
 export interface SessionActions {
   login: (data: User) => void;
@@ -17,6 +17,13 @@ export const createSessionSlice: StateCreator<SessionSlice> = (set) => ({
       user: {
         ...state.user,
         ...data,
+      },
+    }));
+  },
+  clearSession: () => {
+    set(() => ({
+      user: {
+        ...userInitialState,
       },
     }));
   },
