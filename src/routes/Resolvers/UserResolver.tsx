@@ -18,7 +18,12 @@ export const UserResolver: React.FC<Props> = ({ children }) => {
     Boolean(user?.expiresAt) &&
     user.expiresAt!.date > new Date()
 
-  const routesDeflect = ['/login', '/register', '/password-recovery']
+  const routesDeflect = [
+    '/login',
+    '/register',
+    '/password-recovery',
+    '/change-password',
+  ]
 
   if (isAuthenticated) {
     if (routesDeflect.includes(location.pathname)) {
