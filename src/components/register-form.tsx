@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { register } from '@/services/users'
+import { useNavigate } from 'react-router-dom'
 
 export function RegisterForm({
   className,
@@ -24,8 +25,9 @@ export function RegisterForm({
   const [confirmPassword, setConfirmPassword] = useState('')
   const [workShopName, setWorkShopName] = useState('')
   const [address, setAddress] = useState('')
-
-  const onRegister = (e) => {
+  const navigate = useNavigate()
+  
+  const onRegister = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (password != confirmPassword) {
       //TODO: display error
@@ -39,6 +41,8 @@ export function RegisterForm({
       workShopName,
       address
     )
+
+    navigate('/login')
   }
 
   return (
@@ -52,7 +56,7 @@ export function RegisterForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={onRegister}>
             <div className='flex flex-col gap-6'>
               <div className='grid gap-3'>
                 <Label htmlFor='email'>Email</Label>
@@ -137,14 +141,14 @@ export function RegisterForm({
                 )}
               </div>
               <div className='flex flex-col gap-3'>
-                <Button onClick={onRegister} className='w-full'>
+                <Button type='submit' className='w-full'>
                   Crear cuenta
                 </Button>
               </div>
             </div>
             <div className='mt-4 text-center text-sm'>
               Ya tenes una cuenta?
-              <a href='/login' className='underline underline-offset-4 ml-2'>
+              <a onClick={() => navigate('/login')} className='underline underline-offset-4 ml-2'>
                 Inicia sesion
               </a>
             </div>
