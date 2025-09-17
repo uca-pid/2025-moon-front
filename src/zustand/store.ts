@@ -17,7 +17,7 @@ export const useStore = create<StoreState>()(
       {
         name: 'app-store',
         storage: createJSONStorage(() => localStorage),
-        partialize: (state) => ({ user: state.user }),
+        partialize: (state) => ({ user: state.user, themeMode: state.themeMode }),
         onRehydrateStorage: () => (state) => {
           if (state?.user?.expiresAt?.date) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

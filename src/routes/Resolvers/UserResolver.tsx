@@ -3,7 +3,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 interface Props {
-  children: React.ReactElement[];
+  children: React.ReactNode;
 }
 
 export const UserResolver: React.FC<Props> = ({ children }) => {
@@ -31,5 +31,5 @@ export const UserResolver: React.FC<Props> = ({ children }) => {
     }
   }
 
-  return children;
+  return <>{children}</>;
 };

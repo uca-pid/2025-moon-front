@@ -6,6 +6,7 @@ import {
   NavigationMenuList,
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const NavBar = () => {
   const location = useLocation();
@@ -38,9 +39,12 @@ export const NavBar = () => {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <Button variant="outline" className={`rounded-full px-5 ${location.pathname === "/profile" && "bg-accent"}`} onClick={() => navigate("/profile")}>
-          Perfil
-        </Button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Button variant="outline" className={`rounded-full px-5 ${location.pathname === "/profile" && "bg-accent"}`} onClick={() => navigate("/profile")}>
+            Perfil
+          </Button>
+        </div>
       </div>
     </header>
   );
