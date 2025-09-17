@@ -15,7 +15,7 @@ export const Routing = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/passwordRecovery" element={<PasswordRecovery />} />
+      <Route path="/password-recovery" element={<PasswordRecovery />} />
 
       <Route element={<ProtectedResolver redirectPath="/login" />}>
 

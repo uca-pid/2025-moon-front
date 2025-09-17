@@ -71,7 +71,7 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn('flex flex-col gap-6 w-xl', className)} {...props}>
+    <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle>Bienvenido a Estaller</CardTitle>
@@ -96,12 +96,12 @@ export function LoginForm({
                   />
                 </InputError>
               </div>
-              <div className='grid gap-3'>
-                <div className='flex items-center'>
-                  <Label htmlFor='password'>Contraseña</Label>
+              <div className="grid gap-3">
+                <div className="flex items-center">
+                  <Label htmlFor="password">Contraseña</Label>
                   <a
-                    onClick={() => navigate('/passwordRecovery')}
-                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
+                    onClick={() => navigate("/password-recovery")}
+                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Olvidaste tu contraseña?
                   </a>
@@ -125,8 +125,8 @@ export function LoginForm({
                   }
                 >
                   <Input
-                    id='password'
-                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onBlur={() => setPasswordTouched(true)}
@@ -153,5 +153,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

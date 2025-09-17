@@ -11,15 +11,21 @@ import { Input } from "@/components/ui/input";
 import { InputError } from '@/components/input-error'
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { passwordRecovery } from "@/services/users";
 
 export function PasswordRecoveryForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
-  const [email, setEmail] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
   const navigate = useNavigate();
+
+  const onClickRecover = () => {
+    passwordRecovery(email);
+  };
+  
   const isValidEmail = (value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
   const emailValid = email.length > 0 && isValidEmail(email)
   
@@ -54,6 +60,7 @@ export function PasswordRecoveryForm({
                   <div className="flex flex-col gap-3">
                     <Button
                       type="submit"
+                      onClick={onClickRecover}
                       className="w-full"
                     >
                       Enviar mail para recuperar su contraseña.
@@ -61,7 +68,7 @@ export function PasswordRecoveryForm({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => navigate('/login')}
+                      onClick={() => navigate("/login")}
                     >
                       Volver
                     </Button>
