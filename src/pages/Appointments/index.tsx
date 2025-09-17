@@ -1,8 +1,8 @@
-import { NavBar } from "@/components/NavBar";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Container } from "@/components/Container";
 
 export const Appointments = () => {
   const [service, setService] = useState<string>("");
@@ -33,9 +33,7 @@ export const Appointments = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col w-full">
-      <NavBar />
-
+    <Container>
       <div className="mx-auto flex max-w-6xl items-center justify-start px-4 py-3 w-full">
         <div className="flex flex-col gap-8 w-full">
           <DatePicker date={date} setDate={setDate} time={time} setTime={setTime} />
@@ -69,6 +67,6 @@ export const Appointments = () => {
           </div>
         </div>
       </div>
-    </div>
+    </Container>
   );
 };
