@@ -10,14 +10,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { passwordRecovery } from "@/services/users";
 
 export function PasswordRecoveryForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
-  
+  const onClickRecover = () => {
+    passwordRecovery(email);
+  };
   return (
     <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
       <Card>
@@ -32,6 +36,8 @@ export function PasswordRecoveryForm({
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-3">
                     <Input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       id="email"
                       type="email"
                       placeholder="mail@example.com"
@@ -41,6 +47,7 @@ export function PasswordRecoveryForm({
                   <div className="flex flex-col gap-3">
                     <Button
                       type="submit"
+                      onClick={onClickRecover}
                       className="w-full"
                     >
                       Enviar mail para recuperar su contraseña.
@@ -48,7 +55,7 @@ export function PasswordRecoveryForm({
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={() => navigate('/login')}
+                      onClick={() => navigate("/login")}
                     >
                       Volver
                     </Button>

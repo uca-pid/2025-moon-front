@@ -7,6 +7,7 @@ import { Home } from "@/pages/Home";
 import { Appointments } from "@/pages/Appointments";
 import { RoleResolver } from "./Resolvers/RoleResolver";
 import { UserRoles } from "@/zustand/session/session.types";
+import ChangePassword from "@/pages/PasswordRecovery/changePassword";
 
 export const Routing = () => {
   return (
@@ -14,10 +15,12 @@ export const Routing = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/passwordRecovery" element={<PasswordRecovery />} />
+      <Route path="/password-recovery" element={<PasswordRecovery />} />
+      <Route path="/change-password" element={<ChangePassword />} />
       <Route element={<ProtectedResolver redirectPath="/login" />}>
-
-        <Route element={<RoleResolver role={UserRoles.USER} redirectPath="/login" />}>
+        <Route
+          element={<RoleResolver role={UserRoles.USER} redirectPath="/login" />}
+        >
           <Route path="/home" element={<Home />} />
           <Route path="/appointments" element={<Appointments />} />
         </Route>
