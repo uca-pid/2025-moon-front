@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { InputError } from '@/components/input-error'
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { passwordRecovery } from "@/services/users";
@@ -18,10 +19,16 @@ export function PasswordRecoveryForm({
 }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
   const navigate = useNavigate();
+
   const onClickRecover = () => {
     passwordRecovery(email);
   };
+  
+  const isValidEmail = (value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
+  const emailValid = email.length > 0 && isValidEmail(email)
+  
   return (
     <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
       <Card>
@@ -32,17 +39,23 @@ export function PasswordRecoveryForm({
               <CardDescription>Ingrese su Email</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={() => setEmailSent(true)}>
+              <form onSubmit={(e) => { e.preventDefault(); if (!emailValid) { setEmailTouched(true); return; } setEmailSent(true) }}>
                 <div className="flex flex-col gap-6">
                   <div className="grid gap-3">
-                    <Input
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      id="email"
-                      type="email"
-                      placeholder="mail@example.com"
-                      required
-                    />
+                    <InputError
+                      isValid={!emailTouched ? true : emailValid}
+                      message={email.length === 0 ? 'El email es requerido' : 'Ingresá un email válido'}
+                    >
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="mail@example.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        onBlur={() => setEmailTouched(true)}
+                        required
+                      />
+                    </InputError>
                   </div>
                   <div className="flex flex-col gap-3">
                     <Button
