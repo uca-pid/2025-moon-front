@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { InputError } from '@/components/input-error'
 import { Label } from '@/components/ui/label'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
@@ -22,12 +23,26 @@ export function LoginForm({
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [passwordTouched, setPasswordTouched] = useState(false)
   const { login: loginStore } = useStore()
+  const showLoading = useStore((state) => state.showLoading)
+  const hideLoading = useStore((state) => state.hideLoading)
   const navigate = useNavigate()
+
+  const isValidEmail = (value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
+  const emailValid = email.length > 0 && isValidEmail(email)
+  const passwordValid = password.length > 0
   
   const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    if (!emailValid || !passwordValid) {
+      setEmailTouched(true)
+      setPasswordTouched(true)
+      return
+    }
     try {
+      showLoading('Iniciando sesión…')
       const response: LoginResponse = await login(email, password)
 
       const userDecoded = decodeJwtPayload(response.token) as unknown as User
@@ -50,6 +65,8 @@ export function LoginForm({
 
     } catch (error) {
       console.log(error)
+    } finally {
+      hideLoading()
     }
   }
 
@@ -64,14 +81,20 @@ export function LoginForm({
             <div className='flex flex-col gap-6'>
               <div className='grid gap-3'>
                 <Label htmlFor='email'>Email</Label>
-                <Input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  id='email'
-                  type='email'
-                  placeholder='mail@example.com'
-                  required
-                />
+                <InputError
+                  isValid={!emailTouched ? true : emailValid}
+                  message={email.length === 0 ? 'El email es requerido' : 'Ingresá un email válido'}
+                >
+                  <Input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => setEmailTouched(true)}
+                    id='email'
+                    type='email'
+                    placeholder='mail@example.com'
+                    required
+                  />
+                </InputError>
               </div>
               <div className='grid gap-3'>
                 <div className='flex items-center'>
@@ -83,31 +106,33 @@ export function LoginForm({
                     Olvidaste tu contraseña?
                   </a>
                 </div>
-                <div className='relative'>
+                <InputError
+                  isValid={!passwordTouched ? true : passwordValid}
+                  message={'La contraseña es requerida'}
+                  rightAdornment={
+                    <button
+                      type='button'
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      aria-pressed={showPassword}
+                    >
+                      {showPassword ? (
+                        <Eye className='h-4 w-4' />
+                      ) : (
+                        <EyeOff className='h-4 w-4' />
+                      )}
+                    </button>
+                  }
+                >
                   <Input
                     id='password'
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => setPasswordTouched(true)}
                     required
-                    className='pr-10'
                   />
-                  <button
-                    type='button'
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={
-                      showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
-                    }
-                    aria-pressed={showPassword}
-                    className='absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground'
-                  >
-                    {showPassword ? (
-                      <Eye className='h-4 w-4' />
-                    ) : (
-                      <EyeOff className='h-4 w-4' />
-                    )}
-                  </button>
-                </div>
+                </InputError>
               </div>
               <div className='flex flex-col gap-3'>
                 <Button type='submit' className='w-full'>
