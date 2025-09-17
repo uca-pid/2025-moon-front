@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 export const NavBar = () => {
   const location = useLocation();
-
+  const navigate = useNavigate();
   const navPaths = [
     {
       path: "/home",
@@ -38,7 +38,7 @@ export const NavBar = () => {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <Button variant="outline" className="rounded-full px-5">
+        <Button variant="outline" className={`rounded-full px-5 ${location.pathname === "/profile" && "bg-accent"}`} onClick={() => navigate("/profile")}>
           Perfil
         </Button>
       </div>

@@ -7,6 +7,7 @@ import { Home } from "@/pages/Home";
 import { Appointments } from "@/pages/Appointments";
 import { RoleResolver } from "./Resolvers/RoleResolver";
 import { UserRoles } from "@/zustand/session/session.types";
+import { Profile } from "@/pages/Profile";
 
 export const Routing = () => {
   return (
@@ -15,10 +16,12 @@ export const Routing = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/passwordRecovery" element={<PasswordRecovery />} />
+
       <Route element={<ProtectedResolver redirectPath="/login" />}>
 
+        <Route path="/home" element={<Home />} />
+        <Route path="/profile" element={<Profile />} />
         <Route element={<RoleResolver role={UserRoles.USER} redirectPath="/login" />}>
-          <Route path="/home" element={<Home />} />
           <Route path="/appointments" element={<Appointments />} />
         </Route>
       </Route>

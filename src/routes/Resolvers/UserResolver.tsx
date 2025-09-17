@@ -3,7 +3,7 @@ import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 interface Props {
-  children: React.ReactElement;
+  children: React.ReactElement[];
 }
 
 export const UserResolver: React.FC<Props> = ({ children }) => {
@@ -24,6 +24,10 @@ export const UserResolver: React.FC<Props> = ({ children }) => {
   if (isAuthenticated) {
     if (routesDeflect.includes(location.pathname)) {
       return <Navigate to={'/home'} replace />;
+    }
+  } else {
+    if (!routesDeflect.includes(location.pathname)) {
+      return <Navigate to={'/login'} replace />;
     }
   }
 
