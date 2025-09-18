@@ -1,12 +1,11 @@
-
-import { post } from "@/utils/rest-api";
+import { post, put } from '@/utils/rest-api'
 
 export const login = (email: string, password: string) => {
   return post('/users/login', {
     email,
     password,
-  });
-};
+  })
+}
 
 export const register = (
   email: string,
@@ -23,17 +22,25 @@ export const register = (
     userRole,
     workshopName,
     address,
-  });
-};
+  })
+}
 
 export const passwordRecovery = (email: string) => {
-  return post("/users/password-recovery", { email });
-};
+  return post('/users/password-recovery', { email })
+}
 
 export const changePassword = (
   email: string,
   token: string,
   newPassword: string
 ) => {
-  return post("/users/change-password", { email, token, newPassword });
-};
+  return post('/users/change-password', { email, token, newPassword })
+}
+
+export const updateUser = (fullName: string, token: string) => {
+  return put(
+    '/users',
+    { fullName },
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+}
