@@ -30,10 +30,11 @@ export function LoginForm({
   const hideLoading = useStore((state) => state.hideLoading)
   const navigate = useNavigate()
 
-  const isValidEmail = (value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
+  const isValidEmail = (value: string) =>
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
   const emailValid = email.length > 0 && isValidEmail(email)
   const passwordValid = password.length > 0
-  
+
   const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!emailValid || !passwordValid) {
@@ -52,6 +53,7 @@ export function LoginForm({
         loginStore({
           ...userDecoded,
           id: userDecoded.id,
+          token: response.token,
           fullName: userDecoded.fullName,
           email: userDecoded.email,
           userRole: userDecoded.userRole,
@@ -62,7 +64,6 @@ export function LoginForm({
       }
 
       navigate('/home')
-
     } catch (error) {
       console.log(error)
     } finally {
@@ -71,7 +72,7 @@ export function LoginForm({
   }
 
   return (
-    <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
+    <div className={cn('flex flex-col gap-6 w-xl', className)} {...props}>
       <Card>
         <CardHeader>
           <CardTitle>Bienvenido a Estaller</CardTitle>
@@ -83,7 +84,11 @@ export function LoginForm({
                 <Label htmlFor='email'>Email</Label>
                 <InputError
                   isValid={!emailTouched ? true : emailValid}
-                  message={email.length === 0 ? 'El email es requerido' : 'Ingresá un email válido'}
+                  message={
+                    email.length === 0
+                      ? 'El email es requerido'
+                      : 'Ingresá un email válido'
+                  }
                 >
                   <Input
                     value={email}
@@ -96,12 +101,12 @@ export function LoginForm({
                   />
                 </InputError>
               </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Contraseña</Label>
+              <div className='grid gap-3'>
+                <div className='flex items-center'>
+                  <Label htmlFor='password'>Contraseña</Label>
                   <a
-                    onClick={() => navigate("/password-recovery")}
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    onClick={() => navigate('/password-recovery')}
+                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
                   >
                     Olvidaste tu contraseña?
                   </a>
@@ -113,7 +118,11 @@ export function LoginForm({
                     <button
                       type='button'
                       onClick={() => setShowPassword((prev) => !prev)}
-                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      aria-label={
+                        showPassword
+                          ? 'Ocultar contraseña'
+                          : 'Mostrar contraseña'
+                      }
                       aria-pressed={showPassword}
                     >
                       {showPassword ? (
@@ -125,8 +134,8 @@ export function LoginForm({
                   }
                 >
                   <Input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
+                    id='password'
+                    type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onBlur={() => setPasswordTouched(true)}
@@ -145,7 +154,10 @@ export function LoginForm({
             </div>
             <div className='mt-4 text-center text-sm'>
               No tenés una cuenta?{' '}
-              <a onClick={() => navigate('/register')} className='underline underline-offset-4'>
+              <a
+                onClick={() => navigate('/register')}
+                className='underline underline-offset-4'
+              >
                 Registrate
               </a>
             </div>
@@ -153,5 +165,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
