@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { register } from '@/services/users'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { toast } from 'sonner'
 
 export function RegisterForm({
   className,
@@ -50,7 +51,7 @@ export function RegisterForm({
     passwordRules.digit.test(password)
   const confirmValid = confirmPassword.length > 0 && confirmPassword === password
 
-  const onRegister = (e: React.FormEvent<HTMLFormElement>) => {
+  const onRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!emailValid || !fullNameValid || !passwordValid || !confirmValid) {
       setEmailTouched(true)
@@ -59,16 +60,20 @@ export function RegisterForm({
       setConfirmTouched(true)
       return
     }
-    register(
-      email,
-      fullName,
-      password,
-      isMechanic ? 'MECHANIC' : 'USER',
-      workShopName,
-      address
-    )
-
-    navigate('/login')
+    try {
+      await register(
+        email,
+        fullName,
+        password,
+        isMechanic ? 'MECHANIC' : 'USER',
+        workShopName,
+        address
+      )
+      navigate('/login')
+    } catch (error) {
+      console.log(error)
+      toast.error('No se pudo crear la cuenta')
+    }
   }
 
   return (

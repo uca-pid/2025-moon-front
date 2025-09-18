@@ -8,7 +8,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useLocation } from "react-router-dom";
+import { InputError } from "@/components/input-error";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Label } from "./ui/label";
@@ -19,31 +21,68 @@ export function ChangePasswordForm({
   ...props
 }: React.ComponentProps<"div">) {
   const [password, setPassword] = useState("");
-  const [checkPassword, setCheckPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [showPassword2, setShowPassword2] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmTouched, setConfirmTouched] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const { search } = useLocation();
   const params = new URLSearchParams(search);
   const token = params.get("token");
   const email = params.get("email");
-  // toDo: chequear que ni el token ni el email son null, si son null q muestre un error.
-  const onClickChangePassword = (e) => {
+  const navigate = useNavigate();
+  const passwordRules = {
+    minLength: 6,
+    uppercase: /[A-Z]/,
+    digit: /\d/,
+  };
+
+  const passwordValid =
+    password.length >= passwordRules.minLength &&
+    passwordRules.uppercase.test(password) &&
+    passwordRules.digit.test(password);
+
+  const confirmValid =
+    confirmPassword.length > 0 && confirmPassword === password;
+
+  const onChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    changePassword(email || "", token || "", password);
+    if (!passwordValid || !confirmValid) {
+      setPasswordTouched(true);
+      setConfirmTouched(true);
+      return;
+    }
+
+    if (!email || !token) {
+      setStatus("error");
+      return;
+    }
+
+    try {
+      await changePassword(email, token, password);
+      setStatus("success");
+      toast.success("Contraseña cambiada correctamente");
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+      setStatus("error");
+      toast.error("No se pudo cambiar la contraseña");
+    }
   };
 
   return (
     <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
       <Card>
-        <div className="flex flex-col gap-4">
-          <CardHeader>
-            <CardTitle>Ingrese una nueva contraseña</CardTitle>
-            <CardDescription></CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form>
-              <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-3">
+        {status === "idle" ? (
+          <>
+            <CardHeader>
+              <CardTitle>Ingrese una nueva contraseña</CardTitle>
+              <CardDescription></CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={onChangePassword}>
+                <div className="flex flex-col gap-6">
                   <div className="grid gap-3">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -55,74 +94,105 @@ export function ChangePasswordForm({
                       required
                     />
                   </div>
-                  <div className="relative">
-                    <Label htmlFor="password">Contraseña</Label>
-                    <Input
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      required
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      aria-label={
-                        showPassword
-                          ? "Ocultar contraseña"
-                          : "Mostrar contraseña"
+                  <div className="grid gap-3">
+                    <div className="flex items-center">
+                      <Label htmlFor="password">Contraseña</Label>
+                    </div>
+                    <InputError
+                      isValid={!passwordTouched ? true : passwordValid}
+                      message={"Mín 6 caracteres, 1 mayúscula y 1 número"}
+                      rightAdornment={
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((prev) => !prev)}
+                          aria-label={
+                            showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                          }
+                          aria-pressed={showPassword}
+                        >
+                          {showPassword ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </button>
                       }
-                      aria-pressed={showPassword}
-                      className="absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
                     >
-                      {showPassword ? (
-                        <Eye className="h-4 w-4 cursor-pointer" />
-                      ) : (
-                        <EyeOff className="h-4 w-4 cursor-pointer" />
-                      )}
-                    </button>
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        onBlur={() => setPasswordTouched(true)}
+                      />
+                    </InputError>
                   </div>
-                  <div className="relative">
-                    <Label htmlFor="password">Contraseña</Label>
-                    <Input
-                      value={checkPassword}
-                      onChange={(e) => setCheckPassword(e.target.value)}
-                      id="password"
-                      type={showPassword2 ? "text" : "password"}
-                      required
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword2((prev) => !prev)}
-                      aria-label={
-                        showPassword2
-                          ? "Ocultar contraseña"
-                          : "Mostrar contraseña"
+                  <div className="grid gap-3">
+                    <div className="flex items-center">
+                      <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
+                    </div>
+                    <InputError
+                      isValid={!confirmTouched ? true : confirmValid}
+                      message={
+                        confirmPassword.length === 0
+                          ? "La confirmación es requerida"
+                          : "Las contraseñas no coinciden"
                       }
-                      aria-pressed={showPassword2}
-                      className="absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:text-foreground"
+                      rightAdornment={
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword((prev) => !prev)}
+                          aria-label={
+                            showConfirmPassword
+                              ? "Ocultar contraseña"
+                              : "Mostrar contraseña"
+                          }
+                          aria-pressed={showConfirmPassword}
+                        >
+                          {showConfirmPassword ? (
+                            <Eye className="h-4 w-4" />
+                          ) : (
+                            <EyeOff className="h-4 w-4" />
+                          )}
+                        </button>
+                      }
                     >
-                      {showPassword2 ? (
-                        <Eye className="h-4 w-4 cursor-pointer" />
-                      ) : (
-                        <EyeOff className="h-4 w-4 cursor-pointer" />
-                      )}
-                    </button>
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        onBlur={() => setConfirmTouched(true)}
+                      />
+                    </InputError>
                   </div>
-                  <Button
-                    type="submit"
-                    onClick={onClickChangePassword}
-                    className="w-full"
-                  >
-                    Cambiar Contraseña
-                  </Button>
+                  <div className="flex flex-col gap-3">
+                    <Button type="submit" className="w-full">
+                      Cambiar Contraseña
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </form>
-          </CardContent>
-        </div>
+              </form>
+            </CardContent>
+          </>
+        ) : status === "success" ? (
+          <>
+            <CardHeader>
+              <CardTitle>Tu contraseña fue cambiada correctamente.</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Button type="button" className="w-full" onClick={() => navigate("/login")}>
+                Ir a iniciar sesión
+              </Button>
+            </CardContent>
+          </>
+        ) : (
+          <CardHeader>
+            <CardTitle>El token es inválido o ya fue utilizado.</CardTitle>
+          </CardHeader>
+        )}
       </Card>
     </div>
   );
