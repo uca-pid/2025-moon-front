@@ -1,7 +1,7 @@
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardDescription,
@@ -10,9 +10,12 @@ import {
 } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Container } from "@/components/Container";
+import { getAllServices } from "@/services/services";
+import type { Service } from "@/types/services.types";
 
 export const Appointments = () => {
   const [service, setService] = useState<string>("");
+  const [services, setServices] = useState<Service[]>([]);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
 
@@ -75,24 +78,18 @@ export const Appointments = () => {
     },
   ];
 
-  const services = [
-    {
-      name: "Service de auto",
-      price: 1000,
-    },
-    {
-      name: "Service de moto",
-      price: 2000,
-    },
-    {
-      name: "Reparación de auto",
-      price: 5000,
-    },
-    {
-      name: "Revisión",
-      price: null,
-    },
-  ];
+  useEffect(() => {
+    const fetchServices = async () => {
+      const services = await getAllServices();
+      setServices(services);
+    };
+
+    try {
+      fetchServices();
+    } catch (error) {
+      console.log(error);
+    }
+  }, [service]);
 
   const handleDisabled = () => {
     return !service || !date || !time || service === "";
