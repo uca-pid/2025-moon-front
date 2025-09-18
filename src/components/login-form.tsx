@@ -108,7 +108,7 @@ export function LoginForm({
                   <Label htmlFor='password'>Contraseña</Label>
                   <a
                     onClick={() => navigate('/password-recovery')}
-                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
+                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline cursor-pointer'
                   >
                     Olvidaste tu contraseña?
                   </a>
@@ -158,7 +158,7 @@ export function LoginForm({
               No tenés una cuenta?{' '}
               <a
                 onClick={() => navigate('/register')}
-                className='underline underline-offset-4'
+                className='underline underline-offset-4 cursor-pointer'
               >
                 Registrate
               </a>
