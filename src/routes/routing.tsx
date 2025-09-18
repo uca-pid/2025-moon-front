@@ -9,7 +9,7 @@ import { RoleResolver } from './Resolvers/RoleResolver'
 import { UserRoles } from '@/zustand/session/session.types'
 import { Profile } from '@/pages/Profile'
 import { Shifts } from '@/pages/Shifts'
-import ChangePassword from '@/pages/PasswordRecovery/changePassword'
+import ChangePassword from '@/pages/ChangePassword'
 
 export const Routing = () => {
   return (

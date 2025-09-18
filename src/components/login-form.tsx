@@ -11,6 +11,7 @@ import { useStore } from '@/zustand/store'
 import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
 import type { User } from '@/zustand/session/session.types'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 interface LoginResponse {
   token: string
@@ -65,6 +66,7 @@ export function LoginForm({
 
     } catch (error) {
       console.log(error)
+      toast.error('No se pudo iniciar sesión')
     } finally {
       hideLoading()
     }
