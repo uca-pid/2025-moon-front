@@ -143,25 +143,25 @@ export const Appointments = () => {
             <Label htmlFor="appointments" className="px-1">
               Turnos agendados
             </Label>
-            <ScrollArea className="h-[400px] w-[800px] rounded-md border">
-              <div>
-                {Appointments.map((app) => {
-                  return (
-                    <Card className="flex  ">
-                      <CardHeader>
-                        <CardTitle>Turno #{app.id}</CardTitle>
-                        <CardDescription>
-                          Tienes un turno agendado en el taller {app.workshop}{" "}
-                          el dia {app.date} a las {app.hour} para realizar el
-                          servicio {app.servicio}.
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  );
-                })}
-              </div>
-            </ScrollArea>
           </div>
+          <ScrollArea className="h-65 w-[100%] lg:w-[70%] rounded-md border">
+            <div>
+              {Appointments.map((app) => {
+                return (
+                  <Card className="flex  ">
+                    <CardHeader>
+                      <CardTitle>Turno #{app.id}</CardTitle>
+                      <CardDescription>
+                        Tienes un turno agendado en el taller {app.workshop} el
+                        dia {app.date} a las {app.hour} para realizar el
+                        servicio {app.servicio}.
+                      </CardDescription>
+                    </CardHeader>
+                  </Card>
+                );
+              })}
+            </div>
+          </ScrollArea>
         </div>
       </div>
     </Container>
