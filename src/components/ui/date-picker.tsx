@@ -3,7 +3,6 @@ import { ChevronDownIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -27,7 +26,7 @@ interface DatePickerProps {
   setDate: (date: Date | undefined) => void;
   setTime: (time: string) => void;
   hasTimePicker: boolean;
-  availableHours: any;
+  availableHours: { hours: string[] }[];
 }
 
 export function DatePicker({
@@ -39,6 +38,9 @@ export function DatePicker({
   availableHours,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
+  const now = new Date();
+  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+  
   const handleHourClick = (hour: string) => {
     setTime(hour);
   };
@@ -68,6 +70,7 @@ export function DatePicker({
                 mode="single"
                 selected={date || undefined}
                 captionLayout="dropdown"
+                disabled={{ before: tomorrow }}
                 onSelect={(date) => {
                   setDate(date || undefined);
                   setOpen(false);
@@ -83,12 +86,14 @@ export function DatePicker({
               <SelectContent>
                 <SelectGroup>
                   <SelectLabel>Horarios Disponibles</SelectLabel>
-                  {availableHours?.map((item, i) => (
+                  {availableHours?.map((item: { hours: string[] }, i: number) => (
                     <div key={i}>
-                      {item.hours.map((hour: string, j) => (
+                      {item.hours.map((hour: string) => (
                         <SelectItem
+                          key={`${i}-${hour}`}
                           onClick={() => handleHourClick(hour)}
                           value={hour}
+                          className="cursor-pointer"
                         >
                           {hour}
                         </SelectItem>
