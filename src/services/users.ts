@@ -44,3 +44,15 @@ export const updateUser = (fullName: string, token: string) => {
     { headers: { Authorization: `Bearer ${token}` } }
   )
 }
+
+export const updateUserPassword = (
+  currentPassword: string,
+  newPassword: string,
+  token: string
+) => {
+  return put(
+    '/users/password',
+    { currentPassword, newPassword },
+    { headers: { Authorization: `Bearer ${token}` } }
+  )
+}

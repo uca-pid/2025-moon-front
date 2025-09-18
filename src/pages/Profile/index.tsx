@@ -8,7 +8,7 @@ import { useMemo, useState } from 'react'
 import { UserRoles, type User } from '@/zustand/session/session.types'
 import { LogOut } from 'lucide-react'
 import { Container } from '@/components/Container'
-import { updateUser } from '@/services/users'
+import { updateUser, updateUserPassword } from '@/services/users'
 import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
 
 export const Profile = () => {
@@ -111,7 +111,7 @@ export const Profile = () => {
       setChanging(true)
       showLoading('Actualizando contraseña…')
       setChanged(false)
-      // TODO: Implement change password
+      await updateUserPassword(currentPassword, newPassword, user.token)
       setChanged(true)
       setCurrentPassword('')
       setNewPassword('')
