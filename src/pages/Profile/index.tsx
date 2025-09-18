@@ -61,6 +61,23 @@ export const Profile = () => {
   const currentPassValid =
     currentPassword.length === 0 || currentPassword.length >= 1
 
+  const hasProfileChanges =
+    fullName.trim() !== (user.fullName || '').trim() ||
+    (isUserMechanic &&
+      (((workshopName || '').trim() !== (user.workshopName || '').trim()) ||
+        ((address || '').trim() !== (user.address || '').trim())))
+
+  const newPasswordMeetsRules =
+    newPassword.length >= passwordRules.minLength &&
+    passwordRules.uppercase.test(newPassword) &&
+    passwordRules.digit.test(newPassword)
+
+  const canSubmitPassword =
+    currentPassword.length > 0 &&
+    newPasswordMeetsRules &&
+    confirmNewPassword.length > 0 &&
+    confirmNewPassword === newPassword
+
   const onSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!nameValid || !addressValid) {
@@ -192,7 +209,7 @@ export const Profile = () => {
                 )}
 
                 <div className='flex gap-3'>
-                  <Button type='submit' disabled={saving}>
+                  <Button type='submit' disabled={saving || !hasProfileChanges}>
                     {saving
                       ? 'Guardando…'
                       : saved
@@ -312,7 +329,7 @@ export const Profile = () => {
                   </InputError>
                 </div>
                 <div className='flex gap-3'>
-                  <Button type='submit' disabled={changing}>
+                  <Button type='submit' disabled={changing || !canSubmitPassword}>
                     {changing
                       ? 'Actualizando…'
                       : changed
