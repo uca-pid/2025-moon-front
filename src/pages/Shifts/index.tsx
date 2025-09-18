@@ -1,47 +1,22 @@
 import { Table, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Container } from "@/components/Container";
+import { useEffect, useState } from "react";
+import type { Shift } from "@/types/appointments.types";
+import { getNextAppointmentsOfMechanic } from "@/services/appointments";
+import { sortAppointments } from "@/helpers/sort-appointments";
 
 export const Shifts = () => {
+  const [shifts, setShifts] = useState<Shift[]>([]);
 
-  const shifts = [
-    {
-      time: "10:00",
-      client: "Juan Perez",
-      vehicle: "Toyota Corolla",
-      serivce: "Reparación de auto",
-    },
-    {
-      time: "10:00",
-      client: "Juan Perez",
-      vehicle: "Toyota Corolla",
-      serivce: "Reparación de auto",
-    },
-    {
-      time: "10:00",
-      client: "Juan Perez",
-      vehicle: "Toyota Corolla",
-      serivce: "Reparación de auto",
-    },
-    {
-      time: "10:00",
-      client: "Juan Perez",
-      vehicle: "Toyota Corolla",
-      serivce: "Reparación de auto",
-    },
-    {
-      time: "10:00",
-      client: "Juan Perez",
-      vehicle: "Toyota Corolla",
-      serivce: "Reparación de auto",
-    },
-    {
-      time: "10:00",
-      client: "Juan Perez",
-      vehicle: "Toyota Corolla",
-      serivce: "Reparación de auto",
-    },
-  ]
+  useEffect(() => {
+    const fetchShifts = async () => {
+      const shifts = await getNextAppointmentsOfMechanic();
+      console.log("shifts", shifts)
+      setShifts(shifts);
+    };
+    fetchShifts();
+  }, []);
 
   return (
     <Container>
@@ -49,18 +24,20 @@ export const Shifts = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Fecha</TableHead>
               <TableHead>Hora</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Vehículo</TableHead>
               <TableHead>Servicio</TableHead>
             </TableRow>
             {
-              shifts.map((shift) => (
+              sortAppointments(shifts).map((shift) => (
                 <TableRow>
+                  <TableCell>{shift.date}</TableCell>
                   <TableCell>{shift.time}</TableCell>
-                  <TableCell>{shift.client}</TableCell>
-                  <TableCell>{shift.vehicle}</TableCell>
-                  <TableCell>{shift.serivce}</TableCell>
+                  <TableCell>{shift.user.fullName}</TableCell>
+                  <TableCell>AG 192 QZ</TableCell>
+                  <TableCell>{shift.service.name}</TableCell>
                 </TableRow>
               ))
             }

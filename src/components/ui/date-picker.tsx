@@ -40,10 +40,7 @@ export function DatePicker({
   const [open, setOpen] = useState(false);
   const now = new Date();
   const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  
-  const handleHourClick = (hour: string) => {
-    setTime(hour);
-  };
+
   return (
     <div className={cn("flex gap-4", className)}>
       <div className="flex flex-col gap-3">
@@ -79,7 +76,7 @@ export function DatePicker({
             </PopoverContent>
           </Popover>
           {hasTimePicker && (
-            <Select>
+            <Select onValueChange={(value) => setTime(value)}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Seleccione un horario" />
               </SelectTrigger>
@@ -91,7 +88,6 @@ export function DatePicker({
                       {item.hours.map((hour: string) => (
                         <SelectItem
                           key={`${i}-${hour}`}
-                          onClick={() => handleHourClick(hour)}
                           value={hour}
                           className="cursor-pointer"
                         >

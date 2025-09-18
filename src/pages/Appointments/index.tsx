@@ -12,69 +12,28 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Container } from "@/components/Container";
 import { getAllServices } from "@/services/services";
 import type { Service } from "@/types/services.types";
+import { createAppointment, getNextAppointmentsOfUser } from "@/services/appointments";
+import { formatDateToYMD } from "@/helpers/parse-date";
+import type { Appointment, CreateAppointment } from "@/types/appointments.types";
+import { sortAppointments } from "@/helpers/sort-appointments";
 
 export const Appointments = () => {
   const [service, setService] = useState<string>("");
   const [services, setServices] = useState<Service[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
+  const [refreshAppointmentsTick, setRefreshAppointmentsTick] = useState<number>(0);
 
   const availableHours = [
     {
       workshop: "example",
-      hours: ["08:00", "10:00"],
-    },
-  ];
-
-  const Appointments = [
-    {
-      id: 1,
-      date: "2025-09-20",
-      hour: "10:00",
-      workshop: "example",
-      servicio: "nose",
-    },
-    {
-      id: 2,
-      date: "2025-09-21",
-      hour: "14:00",
-      workshop: "example",
-      servicio: "nose",
-    },
-    {
-      id: 3,
-      date: "2025-09-22",
-      hour: "16:30",
-      workshop: "example",
-      servicio: "nose",
-    },
-    {
-      id: 4,
-      date: "2025-09-23",
-      hour: "18:00",
-      workshop: "example",
-      servicio: "nose",
-    },
-    {
-      id: 1,
-      date: "2025-09-20",
-      hour: "10:00",
-      workshop: "example",
-      servicio: "nose",
-    },
-    {
-      id: 2,
-      date: "2025-09-21",
-      hour: "14:00",
-      workshop: "example",
-      servicio: "nose",
-    },
-    {
-      id: 3,
-      date: "2025-09-22",
-      hour: "16:30",
-      workshop: "example",
-      servicio: "nose",
+      hours: [
+        "08:00","08:30","09:00","09:30","10:00","10:30",
+        "11:00","11:30","12:00","12:30","13:00","13:30",
+        "14:00","14:30","15:00","15:30","16:00","16:30","17:00"
+      ]
+      ,
     },
   ];
 
@@ -87,13 +46,36 @@ export const Appointments = () => {
     try {
       fetchServices();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
-  }, [service]);
+  }, []);
+
+  const handleCreateAppointment = async () => {
+    const appointment: CreateAppointment = {
+      date: date ? formatDateToYMD(date) : "",
+      time: time,
+      serviceId: services.find((s) => s.name === service)?.id ?? 0,
+    };
+    await createAppointment(appointment);
+    setRefreshAppointmentsTick((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+    const fetchNextAppointments = async () => {
+      const appointments = await getNextAppointmentsOfUser();
+      setAppointments(appointments);
+    };
+    try {
+      fetchNextAppointments();
+    } catch (error) {
+      console.error(error);
+    }
+  }, [refreshAppointmentsTick]);
 
   const handleDisabled = () => {
     return !service || !date || !time || service === "";
   };
+
 
   return (
     <Container>
@@ -132,6 +114,7 @@ export const Appointments = () => {
               variant="outline"
               className="px-6 py-5 text-base"
               disabled={handleDisabled()}
+              onClick={handleCreateAppointment}
             >
               Confirmar
             </Button>
@@ -141,17 +124,17 @@ export const Appointments = () => {
               Turnos agendados
             </Label>
           </div>
-          <ScrollArea className="h-65 w-[100%] lg:w-[70%] rounded-md border">
+          <ScrollArea className="h-[500px] w-[100%] lg:w-[70%] rounded-md border">
             <div>
-              {Appointments.map((app) => {
+              {sortAppointments(appointments).map((app) => {
                 return (
                   <Card className="flex  ">
                     <CardHeader>
                       <CardTitle>Turno #{app.id}</CardTitle>
                       <CardDescription>
-                        Tienes un turno agendado en el taller {app.workshop} el
-                        dia {app.date} a las {app.hour} para realizar el
-                        servicio {app.servicio}.
+                        Tienes un turno agendado el
+                        dia {app.date} a las {app.time} para realizar el
+                        servicio {app.service.name}.
                       </CardDescription>
                     </CardHeader>
                   </Card>
