@@ -1,15 +1,18 @@
-import { NavBar } from "@/components/NavBar"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { InputError } from "@/components/input-error"
-import { useStore } from "@/zustand/store"
-import { useMemo, useState } from "react"
-import { UserRoles } from "@/zustand/session/session.types"
-import { LogOut } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { InputError } from '@/components/input-error'
+import { useStore } from '@/zustand/store'
+import { useMemo, useState } from 'react'
+import { UserRoles, type User } from '@/zustand/session/session.types'
+import { LogOut } from 'lucide-react'
+import { Container } from '@/components/Container'
+import { updateUser } from '@/services/users'
+import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
 
 export const Profile = () => {
+  const { login: loginStore } = useStore()
   const user = useStore((state) => state.user)
   const clearSession = useStore((state) => state.clearSession)
   const showLoading = useStore((state) => state.showLoading)
@@ -22,14 +25,15 @@ export const Profile = () => {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [changing, setChanging] = useState(false)
   const [changed, setChanged] = useState(false)
 
   const [touched, setTouched] = useState<{ [k: string]: boolean }>({})
-  const markTouched = (key: string) => setTouched((t) => ({ ...t, [key]: true }))
+  const markTouched = (key: string) =>
+    setTouched((t) => ({ ...t, [key]: true }))
 
   const email = user.email
 
@@ -38,14 +42,19 @@ export const Profile = () => {
   const nameValid = fullName.trim().length > 0
   const addressValid = !isUserMechanic ? true : address.trim().length > 0
 
-  const passwordRules = useMemo(() => ({ minLength: 6, uppercase: /[A-Z]/, digit: /\d/ }), [])
+  const passwordRules = useMemo(
+    () => ({ minLength: 6, uppercase: /[A-Z]/, digit: /\d/ }),
+    []
+  )
   const newPassValid =
     newPassword.length === 0 ||
     (newPassword.length >= passwordRules.minLength &&
       passwordRules.uppercase.test(newPassword) &&
       passwordRules.digit.test(newPassword))
-  const confirmPassValid = confirmNewPassword.length === 0 || confirmNewPassword === newPassword
-  const currentPassValid = currentPassword.length === 0 || currentPassword.length >= 1
+  const confirmPassValid =
+    confirmNewPassword.length === 0 || confirmNewPassword === newPassword
+  const currentPassValid =
+    currentPassword.length === 0 || currentPassword.length >= 1
 
   const onSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -58,7 +67,25 @@ export const Profile = () => {
       setSaving(true)
       showLoading('Guardando cambios…')
       setSaved(false)
-      // TODO: Implement update profile
+      const response = await updateUser(fullName, user.token)
+      const newToken = response.token
+      const userDecoded = decodeJwtPayload(newToken) as unknown as User
+      console.log(userDecoded)
+      if (userDecoded) {
+        const expiresAt = getExpirationDate(userDecoded.exp as number)
+        loginStore({
+          ...userDecoded,
+          id: userDecoded.id,
+          token: response.token,
+          fullName: userDecoded.fullName,
+          email: userDecoded.email,
+          userRole: userDecoded.userRole,
+          expiresAt,
+          workshopName: userDecoded.workshopName,
+          address: userDecoded.address,
+        })
+      }
+
       setSaved(true)
     } finally {
       setSaving(false)
@@ -69,7 +96,12 @@ export const Profile = () => {
 
   const onChangePassword = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentPassValid || !newPassValid || !confirmPassValid || newPassword.length === 0) {
+    if (
+      !currentPassValid ||
+      !newPassValid ||
+      !confirmPassValid ||
+      newPassword.length === 0
+    ) {
       markTouched('currentPassword')
       markTouched('newPassword')
       markTouched('confirmNewPassword')
@@ -81,9 +113,9 @@ export const Profile = () => {
       setChanged(false)
       // TODO: Implement change password
       setChanged(true)
-      setCurrentPassword("")
-      setNewPassword("")
-      setConfirmNewPassword("")
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
     } finally {
       setChanging(false)
       hideLoading()
@@ -92,29 +124,28 @@ export const Profile = () => {
   }
 
   return (
-    <div className="w-full min-h-screen flex flex-col">
-      <NavBar />
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <Container>
+      <div className='mx-auto w-full max-w-6xl flex-1 px-4 py-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <Card>
             <CardHeader>
               <CardTitle>Tu perfil</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={onSaveProfile} className="flex flex-col gap-5">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input value={email} id="email" disabled />
+              <form onSubmit={onSaveProfile} className='flex flex-col gap-5'>
+                <div className='grid gap-2'>
+                  <Label htmlFor='email'>Email</Label>
+                  <Input value={email} id='email' disabled />
                 </div>
 
-                <div className="grid gap-2">
-                  <Label htmlFor="fullName">Nombre completo</Label>
+                <div className='grid gap-2'>
+                  <Label htmlFor='fullName'>Nombre completo</Label>
                   <InputError
                     isValid={!touched.fullName ? true : nameValid}
                     message={'El nombre es requerido'}
                   >
                     <Input
-                      id="fullName"
+                      id='fullName'
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       onBlur={() => markTouched('fullName')}
@@ -124,22 +155,22 @@ export const Profile = () => {
 
                 {isUserMechanic && (
                   <>
-                    <div className="grid gap-2">
-                      <Label htmlFor="workshopName">Nombre del local</Label>
+                    <div className='grid gap-2'>
+                      <Label htmlFor='workshopName'>Nombre del local</Label>
                       <Input
-                        id="workshopName"
+                        id='workshopName'
                         value={workshopName}
                         onChange={(e) => setWorkshopName(e.target.value)}
                       />
                     </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="address">Dirección</Label>
+                    <div className='grid gap-2'>
+                      <Label htmlFor='address'>Dirección</Label>
                       <InputError
                         isValid={!touched.address ? true : addressValid}
                         message={'La dirección es requerida'}
                       >
                         <Input
-                          id="address"
+                          id='address'
                           value={address}
                           onChange={(e) => setAddress(e.target.value)}
                           onBlur={() => markTouched('address')}
@@ -149,9 +180,13 @@ export const Profile = () => {
                   </>
                 )}
 
-                <div className="flex gap-3">
-                  <Button type="submit" disabled={saving}>
-                    {saving ? 'Guardando…' : saved ? 'Guardado' : 'Guardar cambios'}
+                <div className='flex gap-3'>
+                  <Button type='submit' disabled={saving}>
+                    {saving
+                      ? 'Guardando…'
+                      : saved
+                      ? 'Guardado'
+                      : 'Guardar cambios'}
                   </Button>
                 </div>
               </form>
@@ -163,41 +198,45 @@ export const Profile = () => {
               <CardTitle>Cambiar contraseña</CardTitle>
             </CardHeader>
             <CardContent>
-              <form onSubmit={onChangePassword} className="flex flex-col gap-5">
-                <div className="grid gap-2">
-                  <Label htmlFor="currentPassword">Contraseña actual</Label>
+              <form onSubmit={onChangePassword} className='flex flex-col gap-5'>
+                <div className='grid gap-2'>
+                  <Label htmlFor='currentPassword'>Contraseña actual</Label>
                   <InputError
                     isValid={!touched.currentPassword ? true : currentPassValid}
                     message={'La contraseña actual es requerida'}
                   >
                     <Input
-                      id="currentPassword"
-                      type="password"
+                      id='currentPassword'
+                      type='password'
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       onBlur={() => markTouched('currentPassword')}
                     />
                   </InputError>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="newPassword">Nueva contraseña</Label>
+                <div className='grid gap-2'>
+                  <Label htmlFor='newPassword'>Nueva contraseña</Label>
                   <InputError
                     isValid={!touched.newPassword ? true : newPassValid}
                     message={'Mín 6 caracteres, 1 mayúscula y 1 número'}
                   >
                     <Input
-                      id="newPassword"
-                      type="password"
+                      id='newPassword'
+                      type='password'
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       onBlur={() => markTouched('newPassword')}
                     />
                   </InputError>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="confirmNewPassword">Confirmar nueva contraseña</Label>
+                <div className='grid gap-2'>
+                  <Label htmlFor='confirmNewPassword'>
+                    Confirmar nueva contraseña
+                  </Label>
                   <InputError
-                    isValid={!touched.confirmNewPassword ? true : confirmPassValid}
+                    isValid={
+                      !touched.confirmNewPassword ? true : confirmPassValid
+                    }
                     message={
                       confirmNewPassword.length === 0
                         ? 'La confirmación es requerida'
@@ -205,28 +244,42 @@ export const Profile = () => {
                     }
                   >
                     <Input
-                      id="confirmNewPassword"
-                      type="password"
+                      id='confirmNewPassword'
+                      type='password'
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       onBlur={() => markTouched('confirmNewPassword')}
                     />
                   </InputError>
                 </div>
-                <div className="flex gap-3">
-                  <Button type="submit" disabled={changing}>
-                    {changing ? 'Actualizando…' : changed ? 'Actualizada' : 'Actualizar contraseña'}
+                <div className='flex gap-3'>
+                  <Button type='submit' disabled={changing}>
+                    {changing
+                      ? 'Actualizando…'
+                      : changed
+                      ? 'Actualizada'
+                      : 'Actualizar contraseña'}
                   </Button>
                 </div>
               </form>
             </CardContent>
           </Card>
-          <Button type="button" variant="destructive" onClick={() => { showLoading('Cerrando sesión…'); setTimeout(() => { clearSession(); hideLoading(); }, 300); }}>
-            <LogOut className="w-4 h-4 mr-2" />
+          <Button
+            type='button'
+            variant='destructive'
+            onClick={() => {
+              showLoading('Cerrando sesión…')
+              setTimeout(() => {
+                clearSession()
+                hideLoading()
+              }, 300)
+            }}
+          >
+            <LogOut className='w-4 h-4 mr-2' />
             Cerrar sesión
           </Button>
         </div>
       </div>
-    </div>
+    </Container>
   )
 }

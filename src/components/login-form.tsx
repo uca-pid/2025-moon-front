@@ -11,6 +11,7 @@ import { useStore } from '@/zustand/store'
 import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
 import type { User } from '@/zustand/session/session.types'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 
 interface LoginResponse {
   token: string
@@ -30,10 +31,11 @@ export function LoginForm({
   const hideLoading = useStore((state) => state.hideLoading)
   const navigate = useNavigate()
 
-  const isValidEmail = (value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
+  const isValidEmail = (value: string) =>
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
   const emailValid = email.length > 0 && isValidEmail(email)
   const passwordValid = password.length > 0
-  
+
   const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!emailValid || !passwordValid) {
@@ -52,6 +54,7 @@ export function LoginForm({
         loginStore({
           ...userDecoded,
           id: userDecoded.id,
+          token: response.token,
           fullName: userDecoded.fullName,
           email: userDecoded.email,
           userRole: userDecoded.userRole,
@@ -62,9 +65,9 @@ export function LoginForm({
       }
 
       navigate('/home')
-
     } catch (error) {
       console.log(error)
+      toast.error('No se pudo iniciar sesión')
     } finally {
       hideLoading()
     }
@@ -83,7 +86,11 @@ export function LoginForm({
                 <Label htmlFor='email'>Email</Label>
                 <InputError
                   isValid={!emailTouched ? true : emailValid}
-                  message={email.length === 0 ? 'El email es requerido' : 'Ingresá un email válido'}
+                  message={
+                    email.length === 0
+                      ? 'El email es requerido'
+                      : 'Ingresá un email válido'
+                  }
                 >
                   <Input
                     value={email}
@@ -100,7 +107,7 @@ export function LoginForm({
                 <div className='flex items-center'>
                   <Label htmlFor='password'>Contraseña</Label>
                   <a
-                    onClick={() => navigate('/passwordRecovery')}
+                    onClick={() => navigate('/password-recovery')}
                     className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
                   >
                     Olvidaste tu contraseña?
@@ -113,7 +120,11 @@ export function LoginForm({
                     <button
                       type='button'
                       onClick={() => setShowPassword((prev) => !prev)}
-                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      aria-label={
+                        showPassword
+                          ? 'Ocultar contraseña'
+                          : 'Mostrar contraseña'
+                      }
                       aria-pressed={showPassword}
                     >
                       {showPassword ? (
@@ -145,7 +156,10 @@ export function LoginForm({
             </div>
             <div className='mt-4 text-center text-sm'>
               No tenés una cuenta?{' '}
-              <a onClick={() => navigate('/register')} className='underline underline-offset-4'>
+              <a
+                onClick={() => navigate('/register')}
+                className='underline underline-offset-4'
+              >
                 Registrate
               </a>
             </div>
