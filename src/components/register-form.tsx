@@ -69,6 +69,7 @@ export function RegisterForm({
         workShopName,
         address
       )
+      toast.success('Cuenta creada correctamente')
       navigate('/login')
     } catch (error) {
       console.log(error)
@@ -235,7 +236,7 @@ export function RegisterForm({
             </div>
             <div className='mt-4 text-center text-sm'>
               Ya tenes una cuenta?
-              <a onClick={() => navigate('/login')} className='underline underline-offset-4 ml-2'>
+              <a onClick={() => navigate('/login')} className='underline underline-offset-4 ml-2 cursor-pointer'>
                 Inicia sesion
               </a>
             </div>

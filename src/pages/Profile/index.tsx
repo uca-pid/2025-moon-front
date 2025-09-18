@@ -6,10 +6,11 @@ import { InputError } from '@/components/input-error'
 import { useStore } from '@/zustand/store'
 import { useMemo, useState } from 'react'
 import { UserRoles, type User } from '@/zustand/session/session.types'
-import { LogOut } from 'lucide-react'
+import { LogOut, Eye, EyeOff } from 'lucide-react'
 import { Container } from '@/components/Container'
 import { updateUser, updateUserPassword } from '@/services/users'
 import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
+import { toast } from 'sonner'
 
 export const Profile = () => {
   const { login: loginStore } = useStore()
@@ -30,6 +31,10 @@ export const Profile = () => {
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [changing, setChanging] = useState(false)
   const [changed, setChanged] = useState(false)
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const [touched, setTouched] = useState<{ [k: string]: boolean }>({})
   const markTouched = (key: string) =>
@@ -87,6 +92,9 @@ export const Profile = () => {
       }
 
       setSaved(true)
+      toast.success('Cambios guardados correctamente')
+    } catch {
+      toast.error('No se pudieron guardar los cambios')
     } finally {
       setSaving(false)
       hideLoading()
@@ -116,6 +124,9 @@ export const Profile = () => {
       setCurrentPassword('')
       setNewPassword('')
       setConfirmNewPassword('')
+      toast.success('Contraseña actualizada correctamente')
+    } catch {
+      toast.error('No se pudo actualizar la contraseña')
     } finally {
       setChanging(false)
       hideLoading()
@@ -204,10 +215,26 @@ export const Profile = () => {
                   <InputError
                     isValid={!touched.currentPassword ? true : currentPassValid}
                     message={'La contraseña actual es requerida'}
+                    rightAdornment={
+                      <button
+                        type='button'
+                        onClick={() => setShowCurrentPassword((prev) => !prev)}
+                        aria-label={
+                          showCurrentPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                        }
+                        aria-pressed={showCurrentPassword}
+                      >
+                        {showCurrentPassword ? (
+                          <Eye className='h-4 w-4' />
+                        ) : (
+                          <EyeOff className='h-4 w-4' />
+                        )}
+                      </button>
+                    }
                   >
                     <Input
                       id='currentPassword'
-                      type='password'
+                      type={showCurrentPassword ? 'text' : 'password'}
                       value={currentPassword}
                       onChange={(e) => setCurrentPassword(e.target.value)}
                       onBlur={() => markTouched('currentPassword')}
@@ -219,10 +246,26 @@ export const Profile = () => {
                   <InputError
                     isValid={!touched.newPassword ? true : newPassValid}
                     message={'Mín 6 caracteres, 1 mayúscula y 1 número'}
+                    rightAdornment={
+                      <button
+                        type='button'
+                        onClick={() => setShowNewPassword((prev) => !prev)}
+                        aria-label={
+                          showNewPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                        }
+                        aria-pressed={showNewPassword}
+                      >
+                        {showNewPassword ? (
+                          <Eye className='h-4 w-4' />
+                        ) : (
+                          <EyeOff className='h-4 w-4' />
+                        )}
+                      </button>
+                    }
                   >
                     <Input
                       id='newPassword'
-                      type='password'
+                      type={showNewPassword ? 'text' : 'password'}
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       onBlur={() => markTouched('newPassword')}
@@ -242,10 +285,26 @@ export const Profile = () => {
                         ? 'La confirmación es requerida'
                         : 'Las contraseñas no coinciden'
                     }
+                    rightAdornment={
+                      <button
+                        type='button'
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        aria-label={
+                          showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                        }
+                        aria-pressed={showConfirmPassword}
+                      >
+                        {showConfirmPassword ? (
+                          <Eye className='h-4 w-4' />
+                        ) : (
+                          <EyeOff className='h-4 w-4' />
+                        )}
+                      </button>
+                    }
                   >
                     <Input
                       id='confirmNewPassword'
-                      type='password'
+                      type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmNewPassword}
                       onChange={(e) => setConfirmNewPassword(e.target.value)}
                       onBlur={() => markTouched('confirmNewPassword')}
