@@ -1,3 +1,4 @@
+import type { UpdateUser } from '@/types/users.types'
 import { post, put } from '@/utils/rest-api'
 
 export const login = (email: string, password: string) => {
@@ -13,7 +14,9 @@ export const register = (
   password: string,
   userRole: string,
   workshopName?: string,
-  address?: string
+  address?: string,
+  addressLatitude?: number,
+  addressLongitude?: number
 ) => {
   return post('/users', {
     email,
@@ -22,6 +25,8 @@ export const register = (
     userRole,
     workshopName,
     address,
+    addressLatitude,
+    addressLongitude,
   })
 }
 
@@ -37,10 +42,10 @@ export const changePassword = (
   return post('/users/change-password', { email, token, newPassword })
 }
 
-export const updateUser = (fullName: string, token: string) => {
+export const updateUser = (user: UpdateUser, token: string) => {
   return put(
     '/users',
-    { fullName },
+    user,
     { headers: { Authorization: `Bearer ${token}` } }
   )
 }

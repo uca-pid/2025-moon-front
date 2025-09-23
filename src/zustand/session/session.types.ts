@@ -14,6 +14,8 @@ export interface User {
   userRole: UserRole
   workshopName: string
   address: string
+  addressLatitude: number
+  addressLongitude: number
   exp: number
   expiresAt?: {
     date: Date
@@ -34,6 +36,8 @@ export const userInitialState: User = {
   userRole: UserRoles.NULL,
   workshopName: '',
   address: '',
+  addressLatitude: 0,
+  addressLongitude: 0,
   exp: 0,
   expiresAt: undefined,
 }

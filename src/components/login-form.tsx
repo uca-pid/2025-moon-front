@@ -61,6 +61,8 @@ export function LoginForm({
           expiresAt,
           workshopName: userDecoded.workshopName,
           address: userDecoded.address,
+          addressLatitude: Number(userDecoded.addressLatitude),
+          addressLongitude: Number(userDecoded.addressLongitude),
         })
       }
 
