@@ -11,6 +11,8 @@ import { Container } from '@/components/Container'
 import { updateUser, updateUserPassword } from '@/services/users'
 import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
 import { toast } from 'sonner'
+import { AddressAutocompleteNew } from '@/components/AutoCompleteAddress'
+import type { UpdateUser } from '@/types/users.types'
 
 export const Profile = () => {
   const { login: loginStore } = useStore()
@@ -22,6 +24,10 @@ export const Profile = () => {
   const [fullName, setFullName] = useState(user.fullName)
   const [workshopName, setWorkshopName] = useState(user.workshopName)
   const [address, setAddress] = useState(user.address)
+  const [addressHasNumber, setAddressHasNumber] = useState(false)
+  const [addressLat, setAddressLat] = useState<number | null>(null)
+  const [addressLng, setAddressLng] = useState<number | null>(null)
+  const [addressTouched, setAddressTouched] = useState(false)
   const [role] = useState(user.userRole)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -89,10 +95,16 @@ export const Profile = () => {
       setSaving(true)
       showLoading('Guardando cambios…')
       setSaved(false)
-      const response = await updateUser(fullName, user.token)
+      const userToUpdate: UpdateUser = {
+        fullName,
+        workshopName,
+        address,
+        addressLatitude: Number(addressLat),
+        addressLongitude: Number(addressLng),
+      }
+      const response = await updateUser(userToUpdate, user.token)
       const newToken = response.token
       const userDecoded = decodeJwtPayload(newToken) as unknown as User
-      console.log(userDecoded)
       if (userDecoded) {
         const expiresAt = getExpirationDate(userDecoded.exp as number)
         loginStore({
@@ -105,6 +117,8 @@ export const Profile = () => {
           expiresAt,
           workshopName: userDecoded.workshopName,
           address: userDecoded.address,
+          addressLatitude: Number(userDecoded.addressLatitude),
+          addressLongitude: Number(userDecoded.addressLongitude),
         })
       }
 
@@ -197,12 +211,21 @@ export const Profile = () => {
                         isValid={!touched.address ? true : addressValid}
                         message={'La dirección es requerida'}
                       >
-                        <Input
-                          id='address'
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                          onBlur={() => markTouched('address')}
-                        />
+                        <AddressAutocompleteNew
+                        value={address}
+                        onChange={(e) => {
+                          setAddress(e)
+                          setAddressTouched(true)
+                        }}
+                        onSelect={(e) => setAddress(e?.text.text || '')}
+                        onResolved={(d) => {
+                          setAddressHasNumber(Boolean(d?.hasStreetNumber))
+                          setAddressLat(d?.lat ?? null)
+                          setAddressLng(d?.lng ?? null)
+                        }}
+                        invalid={addressTouched && isUserMechanic && !addressHasNumber}
+                        errorText={'Seleccioná una dirección con altura (número).'}
+                      />
                       </InputError>
                     </div>
                   </>

@@ -3,3 +3,11 @@ export interface User {
   fullName: string;
   email: string;
 }
+
+export interface UpdateUser {
+  fullName: string;
+  workshopName?: string;
+  address?: string;
+  addressLatitude?: number;
+  addressLongitude?: number;
+}

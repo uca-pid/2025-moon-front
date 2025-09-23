@@ -16,6 +16,7 @@ import { register } from '@/services/users'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { AddressAutocompleteNew } from './AutoCompleteAddress'
 
 export function RegisterForm({
   className,
@@ -28,6 +29,10 @@ export function RegisterForm({
   const [confirmPassword, setConfirmPassword] = useState('')
   const [workShopName, setWorkShopName] = useState('')
   const [address, setAddress] = useState('')
+  const [addressHasNumber, setAddressHasNumber] = useState(false)
+  const [addressLat, setAddressLat] = useState<number | null>(null)
+  const [addressLng, setAddressLng] = useState<number | null>(null)
+  const [addressTouched, setAddressTouched] = useState(false)
   const [emailTouched, setEmailTouched] = useState(false)
   const [fullNameTouched, setFullNameTouched] = useState(false)
   const [passwordTouched, setPasswordTouched] = useState(false)
@@ -53,11 +58,15 @@ export function RegisterForm({
 
   const onRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!emailValid || !fullNameValid || !passwordValid || !confirmValid) {
+    const addressValid =
+      !isMechanic ||
+      (address.trim().length > 0 && addressHasNumber && addressLat !== null && addressLng !== null)
+    if (!emailValid || !fullNameValid || !passwordValid || !confirmValid || !addressValid) {
       setEmailTouched(true)
       setFullNameTouched(true)
       setPasswordTouched(true)
       setConfirmTouched(true)
+      if (isMechanic) setAddressTouched(true)
       return
     }
     try {
@@ -67,7 +76,9 @@ export function RegisterForm({
         password,
         isMechanic ? 'MECHANIC' : 'USER',
         workShopName,
-        address
+        address,
+        Number(addressLat),
+        Number(addressLng)
       )
       toast.success('Cuenta creada correctamente')
       navigate('/login')
@@ -217,12 +228,20 @@ export function RegisterForm({
                       <div className='flex items-center'>
                         <Label htmlFor='address'>Direccion</Label>
                       </div>
-                      <Input
-                        id='address'
-                        type='address'
-                        required
+                      <AddressAutocompleteNew
                         value={address}
-                        onChange={(e) => setAddress(e.target.value)}
+                        onChange={(e) => {
+                          setAddress(e)
+                          setAddressTouched(true)
+                        }}
+                        onSelect={(e) => setAddress(e?.text.text || '')}
+                        onResolved={(d) => {
+                          setAddressHasNumber(Boolean(d?.hasStreetNumber))
+                          setAddressLat(d?.lat ?? null)
+                          setAddressLng(d?.lng ?? null)
+                        }}
+                        invalid={addressTouched && isMechanic && !addressHasNumber}
+                        errorText={'Seleccioná una dirección con altura (número).'}
                       />
                     </div>
                   </div>
