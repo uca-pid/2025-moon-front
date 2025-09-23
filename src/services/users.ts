@@ -1,5 +1,5 @@
 import type { UpdateUser } from '@/types/users.types'
-import { post, put } from '@/utils/rest-api'
+import { post, put, get } from '@/utils/rest-api'
 
 export const login = (email: string, password: string) => {
   return post('/users/login', {
@@ -43,11 +43,7 @@ export const changePassword = (
 }
 
 export const updateUser = (user: UpdateUser, token: string) => {
-  return put(
-    '/users',
-    user,
-    { headers: { Authorization: `Bearer ${token}` } }
-  )
+  return put('/users', user, { headers: { Authorization: `Bearer ${token}` } })
 }
 
 export const updateUserPassword = (
@@ -60,4 +56,8 @@ export const updateUserPassword = (
     { currentPassword, newPassword },
     { headers: { Authorization: `Bearer ${token}` } }
   )
+}
+
+export const getAllWorkshops = () => {
+  return get('/users/workshops')
 }
