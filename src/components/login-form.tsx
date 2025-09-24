@@ -1,70 +1,173 @@
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { InputError } from '@/components/input-error'
+import { Label } from '@/components/ui/label'
+import { Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
+import { login } from '@/services/users'
+import { useStore } from '@/zustand/store'
+import { decodeJwtPayload, getExpirationDate } from '@/helpers/jwt-decode'
+import type { User } from '@/zustand/session/session.types'
+import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
+
+interface LoginResponse {
+  token: string
+}
 
 export function LoginForm({
   className,
   ...props
-}: React.ComponentProps<"div">) {
+}: React.ComponentProps<'div'>) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [passwordTouched, setPasswordTouched] = useState(false)
+  const { login: loginStore } = useStore()
+  const showLoading = useStore((state) => state.showLoading)
+  const hideLoading = useStore((state) => state.hideLoading)
+  const navigate = useNavigate()
+
+  const isValidEmail = (value: string) =>
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
+  const emailValid = email.length > 0 && isValidEmail(email)
+  const passwordValid = password.length > 0
+
+  const onLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!emailValid || !passwordValid) {
+      setEmailTouched(true)
+      setPasswordTouched(true)
+      return
+    }
+    try {
+      showLoading('Iniciando sesión…')
+      const response: LoginResponse = await login(email, password)
+
+      const userDecoded = decodeJwtPayload(response.token) as unknown as User
+      console.log(userDecoded)
+      if (userDecoded) {
+        const expiresAt = getExpirationDate(userDecoded.exp as number)
+        loginStore({
+          ...userDecoded,
+          id: userDecoded.id,
+          token: response.token,
+          fullName: userDecoded.fullName,
+          email: userDecoded.email,
+          userRole: userDecoded.userRole,
+          expiresAt,
+          workshopName: userDecoded.workshopName,
+          address: userDecoded.address,
+          addressLatitude: Number(userDecoded.addressLatitude),
+          addressLongitude: Number(userDecoded.addressLongitude),
+        })
+      }
+
+      navigate('/home')
+    } catch (error) {
+      console.log(error)
+      toast.error('No se pudo iniciar sesión')
+    } finally {
+      hideLoading()
+    }
+  }
+
   return (
-    <div className={cn("flex flex-col gap-6 w-xl", className)} {...props}>
+    <div className={cn('flex flex-col gap-6 w-xl', className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
-          </CardDescription>
+          <CardTitle>Bienvenido a Estaller</CardTitle>
         </CardHeader>
         <CardContent>
-          <form>
-            <div className="flex flex-col gap-6">
-              <div className="grid gap-3">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
-                  required
-                />
+          <form onSubmit={onLogin}>
+            <div className='flex flex-col gap-6'>
+              <div className='grid gap-3'>
+                <Label htmlFor='email'>Email</Label>
+                <InputError
+                  isValid={!emailTouched ? true : emailValid}
+                  message={
+                    email.length === 0
+                      ? 'El email es requerido'
+                      : 'Ingresá un email válido'
+                  }
+                >
+                  <Input
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={() => setEmailTouched(true)}
+                    id='email'
+                    type='email'
+                    placeholder='mail@example.com'
+                    required
+                  />
+                </InputError>
               </div>
-              <div className="grid gap-3">
-                <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+              <div className='grid gap-3'>
+                <div className='flex items-center'>
+                  <Label htmlFor='password'>Contraseña</Label>
                   <a
-                    href="/passwordRecovery"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    onClick={() => navigate('/password-recovery')}
+                    className='ml-auto inline-block text-sm underline-offset-4 hover:underline cursor-pointer'
                   >
-                    Forgot your password?
+                    Olvidaste tu contraseña?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <InputError
+                  isValid={!passwordTouched ? true : passwordValid}
+                  message={'La contraseña es requerida'}
+                  rightAdornment={
+                    <button
+                      type='button'
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={
+                        showPassword
+                          ? 'Ocultar contraseña'
+                          : 'Mostrar contraseña'
+                      }
+                      aria-pressed={showPassword}
+                    >
+                      {showPassword ? (
+                        <Eye className='h-4 w-4' />
+                      ) : (
+                        <EyeOff className='h-4 w-4' />
+                      )}
+                    </button>
+                  }
+                >
+                  <Input
+                    id='password'
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onBlur={() => setPasswordTouched(true)}
+                    required
+                  />
+                </InputError>
               </div>
-              <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Login
+              <div className='flex flex-col gap-3'>
+                <Button type='submit' className='w-full'>
+                  Iniciar sesión
                 </Button>
-                <Button variant="outline" className="w-full">
-                  Login with Google
-                </Button>
+                {/* <Button variant="outline" className="w-full">
+                  Iniciar sesión con Google
+                </Button> */}
               </div>
             </div>
-            <div className="mt-4 text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <a href="/register" className="underline underline-offset-4">
-                Sign up
+            <div className='mt-4 text-center text-sm'>
+              No tenés una cuenta?{' '}
+              <a
+                onClick={() => navigate('/register')}
+                className='underline underline-offset-4 cursor-pointer'
+              >
+                Registrate
               </a>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }
