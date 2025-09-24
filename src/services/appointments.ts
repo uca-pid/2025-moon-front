@@ -1,5 +1,5 @@
-import type { CreateAppointment } from "@/types/appointments.types"
-import { get, post } from "@/utils/rest-api"
+import type { CreateAppointment } from '@/types/appointments.types'
+import { get, post } from '@/utils/rest-api'
 
 export const getNextAppointmentsOfUser = () => {
   return get(`/appointments/user`)
