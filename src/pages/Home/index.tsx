@@ -11,17 +11,17 @@ export const Home = () => {
   return (
     <Container>
       <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-8">
+        <h1 className="text-primary text-4xl md:text-5xl font-extrabold tracking-tight mb-8">
           Hola <span className="italic">{user.fullName}</span>
         </h1>
 
         {
           user.userRole === UserRoles.MECHANIC ? (
-            <Button variant="outline" className="px-6 py-5 text-base" onClick={() => navigate("/shifts")}>
+            <Button variant="outline" className="px-6 py-5 text-foreground" onClick={() => navigate("/shifts")}>
               Queres ver tus turnos?
             </Button>
           ) : (
-            <Button variant="outline" className="px-6 py-5 text-base" onClick={() => navigate("/appointments")}>
+            <Button variant="outline" className="px-6 py-5 text-foreground" onClick={() => navigate("/appointments")}>
               Queres reservar un turno?
             </Button>
           )

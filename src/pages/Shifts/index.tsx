@@ -20,43 +20,51 @@ export const Shifts = () => {
 
   return (
     <Container>
-      <div className="flex flex-col gap-10 w-[90%]">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Hora</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Vehículo</TableHead>
-              <TableHead>Servicio</TableHead>
-            </TableRow>
-            {
-              sortAppointments(shifts).map((shift) => (
-                <TableRow>
-                  <TableCell>{shift.date}</TableCell>
-                  <TableCell>{shift.time}</TableCell>
-                  <TableCell>{shift.user.fullName}</TableCell>
-                  <TableCell>AG 192 QZ</TableCell>
-                  <TableCell>{shift.service.name}</TableCell>
+      <div className="flex flex-col items-center justify-center p-6 gap-10">
+        <h1 className="text-2xl font-bold text-primary w-full text-left">Turnos</h1>
+        <div className="flex flex-col gap-10 w-[90%]">
+          <Table className="text-foreground">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Hora</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Vehículo</TableHead>
+                <TableHead>Servicio</TableHead>
+              </TableRow>
+              {
+                shifts.length > 0 ? (
+                sortAppointments(shifts).map((shift) => (
+                  <TableRow>
+                    <TableCell>{shift.date}</TableCell>
+                    <TableCell>{shift.time}</TableCell>
+                    <TableCell>{shift.user.fullName}</TableCell>
+                    <TableCell>AG 192 QZ</TableCell>
+                    <TableCell>{shift.service.name}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow className="text-center">
+                  <TableCell colSpan={5}>No hay turnos</TableCell>
                 </TableRow>
-              ))
-            }
-          </TableHeader>
-        </Table>
+              )}
+            </TableHeader>
+          </Table>
 
-        <Pagination className="flex justify-between items-center w-full">
-          <PaginationPrevious>
-            <PaginationLink>1</PaginationLink>
-          </PaginationPrevious>
-          <PaginationContent>
-            <PaginationItem>
+          <Pagination className="flex justify-between items-center w-full text-foreground">
+            <PaginationPrevious>
               <PaginationLink>1</PaginationLink>
-            </PaginationItem>
-          </PaginationContent>
-          <PaginationNext>
-            <PaginationLink>1</PaginationLink>
-          </PaginationNext>
-        </Pagination>
+            </PaginationPrevious>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationLink>1</PaginationLink>
+              </PaginationItem>
+            </PaginationContent>
+            <PaginationNext>
+              <PaginationLink>1</PaginationLink>
+            </PaginationNext>
+          </Pagination>
+        </div>
       </div>
       
     </Container>

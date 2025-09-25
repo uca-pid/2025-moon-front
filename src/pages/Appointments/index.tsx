@@ -116,91 +116,102 @@ export const Appointments = () => {
 
   return (
     <Container>
-      <div className='mx-auto flex max-w-6xl items-center justify-start px-4 py-3 w-full'>
-        <div className='flex flex-col gap-8 w-full'>
-          <DatePicker
-            hasTimePicker={true}
-            date={date}
-            setDate={setDate}
-            setTime={setTime}
-            availableHours={availableHours}
-          />
-          <div className='flex flex-col gap-3 w-[50%] cursor-pointer'>
-            <Label htmlFor='workshop' className='px-1'>
-              Taller
-            </Label>
-            <select
-              id='workshop'
-              className='h-10 rounded-md border bg-background px-3 text-sm shadow-xs focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none cursor-pointer'
-              value={workshop ?? ''}
-              onChange={(e) => setWorkshop(e.target.value)}
-            >
-              <option value='' disabled>
-                Selecciona un taller
-              </option>
-              {workshops.map((workshop) => (
-                <option key={workshop.id} value={workshop.id}>
-                  {workshop.workshopName} ({workshop.address})
+      <div className='flex flex-col gap-4 p-6'>
+        <h1 className='text-primary text-4xl md:text-5xl font-extrabold tracking-tight mb-8'>
+          Agendar turno
+        </h1>
+        <div className='flex flex-col lg:flex-row items-start lg:items-center justify-start w-full text-foreground gap-8 lg:gap-0'>
+          <div className='flex flex-col gap-8 w-full lg:w-[50%]'>
+            <DatePicker
+              hasTimePicker={true}
+              date={date}
+              setDate={setDate}
+              setTime={setTime}
+              availableHours={availableHours}
+            />
+            <div className='flex flex-col gap-3 w-full lg:w-[50%] cursor-pointer'>
+              <Label htmlFor='workshop' className='px-1'>
+                Taller
+              </Label>
+              <select
+                id='workshop'
+                className='h-10 rounded-md border bg-background px-3 text-sm shadow-xs focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none cursor-pointer'
+                value={workshop ?? ''}
+                onChange={(e) => setWorkshop(e.target.value)}
+              >
+                <option value='' disabled>
+                  Selecciona un taller
                 </option>
-              ))}
-            </select>
-          </div>
-          <div className='flex flex-col gap-3 w-[50%] cursor-pointer'>
-            <Label htmlFor='service' className='px-1'>
-              Servicio
-            </Label>
-            <select
-              id='service'
-              className='h-10 rounded-md border bg-background px-3 text-sm shadow-xs focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none cursor-pointer'
-              defaultValue={service}
-              value={service}
-              onChange={(e) => setService(e.target.value)}
-            >
-              <option value='' disabled>
-                Selecciona un servicio
-              </option>
-              {services.map((service) => (
-                <option key={service.name} value={service.name}>
-                  {service.name} - ${service.price ?? 'Consultar'}
+                {workshops.map((workshop) => (
+                  <option key={workshop.id} value={workshop.id}>
+                    {workshop.workshopName} ({workshop.address})
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className='flex flex-col gap-3 w-full lg:w-[50%] cursor-pointer'>
+              <Label htmlFor='service' className='px-1'>
+                Servicio
+              </Label>
+              <select
+                id='service'
+                className='h-10 rounded-md border bg-background px-3 text-sm shadow-xs focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none cursor-pointer'
+                defaultValue={service}
+                value={service}
+                onChange={(e) => setService(e.target.value)}
+              >
+                <option value='' disabled>
+                  Selecciona un servicio
                 </option>
-              ))}
-            </select>
+                {services.map((service) => (
+                  <option key={service.name} value={service.name}>
+                    {service.name} - ${service.price ?? 'Consultar'}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Button
+                variant='outline'
+                className='px-6 py-5 text-base'
+                disabled={handleDisabled()}
+                onClick={handleCreateAppointment}
+              >
+                Confirmar
+              </Button>
+            </div>
           </div>
-          <div>
-            <Button
-              variant='outline'
-              className='px-6 py-5 text-base'
-              disabled={handleDisabled()}
-              onClick={handleCreateAppointment}
-            >
-              Confirmar
-            </Button>
-          </div>
-          <div className='flex flex-col gap-3 w-[50%]'>
+          <div className='flex flex-col gap-4 w-full lg:w-[50%]'>
             <Label htmlFor='appointments' className='px-1'>
               Turnos agendados
             </Label>
-          </div>
-          <ScrollArea className='h-[500px] w-[100%] lg:w-[70%] rounded-md border'>
-            <div>
-              {sortAppointments(appointments).map((app) => {
-                return (
-                  <Card className='flex  ' key={app.id}>
-                    <CardHeader>
-                      <CardTitle>Turno #{app.id}</CardTitle>
-                      <CardDescription>
-                        Tienes un turno agendado en{' '}
-                        {(app as Appointment).workshop.workshopName} el dia{' '}
-                        {app.date} a las {app.time} para realizar el servicio{' '}
-                        {app.service.name}.
-                      </CardDescription>
-                    </CardHeader>
-                  </Card>
+            <ScrollArea className='h-[70vh] w-full border rounded-xl overflow-y-auto'>
+              {
+                appointments.length > 0 ? (
+                sortAppointments(appointments).map((app) => {
+                  return (
+                    <Card className='flex  ' key={app.id}>
+                      <CardHeader>
+                        <CardTitle>Turno #{app.id}</CardTitle>
+                        <CardDescription>
+                          Tienes un turno agendado en{' '}
+                          {(app as Appointment).workshop.workshopName} el dia{' '}
+                          {app.date} a las {app.time} para realizar el servicio{' '}
+                          {app.service.name}.
+                        </CardDescription>
+                      </CardHeader>
+                    </Card>
+                  )
+                })
+                ) : (
+                  <div className='flex justify-center items-center h-full w-full'>
+                    <p className='text-center'>No hay turnos agendados</p>
+                  </div>
                 )
-              })}
+              }
+            </ScrollArea>
             </div>
-          </ScrollArea>
-        </div>
+          </div>
       </div>
     </Container>
   )
