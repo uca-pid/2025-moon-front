@@ -21,6 +21,7 @@ import type { Appointment, CreateAppointment } from '@/types/appointments.types'
 import { sortAppointments } from '@/helpers/sort-appointments'
 import type { User } from '@/types/users.types'
 import { getAllWorkshops } from '@/services/users'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 export const Appointments = () => {
   const [workshop, setWorkshop] = useState<string>('')
@@ -120,69 +121,67 @@ export const Appointments = () => {
         <h1 className='text-primary text-4xl md:text-5xl font-extrabold tracking-tight mb-8'>
           Agendar turno
         </h1>
-        <div className='flex flex-col lg:flex-row items-start lg:items-center justify-start w-full text-foreground gap-8 lg:gap-0'>
+        <div className='flex flex-col lg:flex-row items-start justify-start w-full text-foreground gap-8 lg:gap-0'>
           <div className='flex flex-col gap-8 w-full lg:w-[50%]'>
             <DatePicker
               hasTimePicker={true}
               date={date}
               setDate={setDate}
               setTime={setTime}
+              time={time}
               availableHours={availableHours}
             />
             <div className='flex flex-col gap-3 w-full lg:w-[50%] cursor-pointer'>
-              <Label htmlFor='workshop' className='px-1'>
+              <Label htmlFor='workshop' className='px-1 text-lg text-foreground'>
                 Taller
               </Label>
-              <select
-                id='workshop'
-                className='h-10 rounded-md border bg-background px-3 text-sm shadow-xs focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none cursor-pointer'
-                value={workshop ?? ''}
-                onChange={(e) => setWorkshop(e.target.value)}
+              <Select
+                value={workshop}
+                onValueChange={(value) => setWorkshop(value)}
               >
-                <option value='' disabled>
-                  Selecciona un taller
-                </option>
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Selecciona un taller' />
+                </SelectTrigger>
+                <SelectContent className='w-full'>
                 {workshops.map((workshop) => (
-                  <option key={workshop.id} value={workshop.id}>
+                  <SelectItem key={workshop.id} value={workshop.id.toString()}>
                     {workshop.workshopName} ({workshop.address})
-                  </option>
-                ))}
-              </select>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className='flex flex-col gap-3 w-full lg:w-[50%] cursor-pointer'>
-              <Label htmlFor='service' className='px-1'>
+              <Label htmlFor='service' className='px-1 text-lg text-foreground'>
                 Servicio
               </Label>
-              <select
-                id='service'
-                className='h-10 rounded-md border bg-background px-3 text-sm shadow-xs focus-visible:ring-ring/50 focus-visible:ring-[3px] outline-none cursor-pointer'
-                defaultValue={service}
+              <Select
                 value={service}
-                onChange={(e) => setService(e.target.value)}
+                onValueChange={(value) => setService(value)}
               >
-                <option value='' disabled>
-                  Selecciona un servicio
-                </option>
+                <SelectTrigger className='w-full'>
+                  <SelectValue placeholder='Selecciona un servicio' />
+                </SelectTrigger>
+                <SelectContent className='w-full'>
                 {services.map((service) => (
-                  <option key={service.name} value={service.name}>
+                  <SelectItem key={service.name} value={service.name}>
                     {service.name} - ${service.price ?? 'Consultar'}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <Button
-                variant='outline'
-                className='px-6 py-5 text-base'
-                disabled={handleDisabled()}
-                onClick={handleCreateAppointment}
-              >
-                Confirmar
-              </Button>
-            </div>
+            <Button
+              variant='outline'
+              className='px-6 py-5 text-base'
+              disabled={handleDisabled()}
+              onClick={handleCreateAppointment}
+            >
+              Confirmar
+            </Button>
           </div>
           <div className='flex flex-col gap-4 w-full lg:w-[50%]'>
-            <Label htmlFor='appointments' className='px-1'>
+            <Label htmlFor='appointments' className='px-1 text-lg'>
               Turnos agendados
             </Label>
             <ScrollArea className='h-[70vh] w-full border rounded-xl overflow-y-auto'>
