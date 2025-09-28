@@ -40,28 +40,39 @@ export function RegisterForm({
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const navigate = useNavigate()
-  
+
   const passwordRules = {
     minLength: 6,
     uppercase: /[A-Z]/,
     digit: /\d/,
   }
 
-  const isValidEmail = (value: string) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
+  const isValidEmail = (value: string) =>
+    /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value)
   const emailValid = email.length > 0 && isValidEmail(email)
   const fullNameValid = fullName.trim().length > 0
   const passwordValid =
     password.length >= passwordRules.minLength &&
     passwordRules.uppercase.test(password) &&
     passwordRules.digit.test(password)
-  const confirmValid = confirmPassword.length > 0 && confirmPassword === password
+  const confirmValid =
+    confirmPassword.length > 0 && confirmPassword === password
 
   const onRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const addressValid =
       !isMechanic ||
-      (address.trim().length > 0 && addressHasNumber && addressLat !== null && addressLng !== null)
-    if (!emailValid || !fullNameValid || !passwordValid || !confirmValid || !addressValid) {
+      (address.trim().length > 0 &&
+        addressHasNumber &&
+        addressLat !== null &&
+        addressLng !== null)
+    if (
+      !emailValid ||
+      !fullNameValid ||
+      !passwordValid ||
+      !confirmValid ||
+      !addressValid
+    ) {
       setEmailTouched(true)
       setFullNameTouched(true)
       setPasswordTouched(true)
@@ -105,7 +116,11 @@ export function RegisterForm({
                 <Label htmlFor='email'>Email</Label>
                 <InputError
                   isValid={!emailTouched ? true : emailValid}
-                  message={email.length === 0 ? 'El email es requerido' : 'Ingresá un email válido'}
+                  message={
+                    email.length === 0
+                      ? 'El email es requerido'
+                      : 'Ingresá un email válido'
+                  }
                 >
                   <Input
                     value={email}
@@ -145,7 +160,11 @@ export function RegisterForm({
                     <button
                       type='button'
                       onClick={() => setShowPassword((prev: boolean) => !prev)}
-                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      aria-label={
+                        showPassword
+                          ? 'Ocultar contraseña'
+                          : 'Mostrar contraseña'
+                      }
                       aria-pressed={showPassword}
                     >
                       {showPassword ? (
@@ -180,8 +199,14 @@ export function RegisterForm({
                   rightAdornment={
                     <button
                       type='button'
-                      onClick={() => setShowConfirmPassword((prev: boolean) => !prev)}
-                      aria-label={showConfirmPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      onClick={() =>
+                        setShowConfirmPassword((prev: boolean) => !prev)
+                      }
+                      aria-label={
+                        showConfirmPassword
+                          ? 'Ocultar contraseña'
+                          : 'Mostrar contraseña'
+                      }
                       aria-pressed={showConfirmPassword}
                     >
                       {showConfirmPassword ? (
@@ -234,14 +259,18 @@ export function RegisterForm({
                           setAddress(e)
                           setAddressTouched(true)
                         }}
-                        onSelect={(e) => setAddress(e?.text.text || '')}
+                        onSelect={(e) => setAddress(e || '')}
                         onResolved={(d) => {
                           setAddressHasNumber(Boolean(d?.hasStreetNumber))
                           setAddressLat(d?.lat ?? null)
                           setAddressLng(d?.lng ?? null)
                         }}
-                        invalid={addressTouched && isMechanic && !addressHasNumber}
-                        errorText={'Seleccioná una dirección con altura (número).'}
+                        invalid={
+                          addressTouched && isMechanic && !addressHasNumber
+                        }
+                        errorText={
+                          'Seleccioná una dirección con altura (número).'
+                        }
                       />
                     </div>
                   </div>
@@ -255,7 +284,10 @@ export function RegisterForm({
             </div>
             <div className='mt-4 text-center text-sm'>
               Ya tenes una cuenta?
-              <a onClick={() => navigate('/login')} className='underline underline-offset-4 ml-2 cursor-pointer'>
+              <a
+                onClick={() => navigate('/login')}
+                className='underline underline-offset-4 ml-2 cursor-pointer'
+              >
                 Inicia sesion
               </a>
             </div>
