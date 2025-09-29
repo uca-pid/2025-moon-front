@@ -105,13 +105,13 @@ export const Vehicles = () => {
           <h1 className="text-primary text-4xl md:text-5xl font-extrabold tracking-tight mb-8">
             Tus vehiculos
           </h1>
-          <ScrollArea className="h-[70vh] w-full border rounded-xl overflow-y-auto ">
+          <ScrollArea className="h-[70vh] w-full border rounded-xl overflow-y-auto">
             {vehicles.length > 0 ? (
               vehicles.map((vehicle) => {
                 return (
                   <Card className="gap-3 p-3">
                     <div className="flex items-center">
-                      <div className="flex flex-row p-2 space-x-3 items-center  w-full">
+                      <div className="flex flex-row p-2 space-x-3 items-center w-full">
                         <Accordion
                           type="single"
                           collapsible
@@ -247,8 +247,8 @@ export const Vehicles = () => {
                 <CirclePlus /> Agregar
               </Button>
             </DialogTrigger>
-            <form onSubmit={handleAddVehicle}>
-              <DialogContent className="sm:max-w-[425px] text-foreground">
+            <DialogContent className="sm:max-w-[425px] text-foreground">
+              <form onSubmit={handleAddVehicle} className="flex flex-col gap-4">
                 <DialogHeader>
                   <DialogTitle>Agrega tu vehiculo</DialogTitle>
                   <DialogDescription>
@@ -310,8 +310,8 @@ export const Vehicles = () => {
                   </DialogClose>
                 </DialogFooter>
                 <Button type="submit">Agregar Vehiculo</Button>
-              </DialogContent>
-            </form>
+              </form>
+            </DialogContent>
           </Dialog>
         </div>
       </div>
