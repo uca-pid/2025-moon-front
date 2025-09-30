@@ -38,9 +38,9 @@ export const Shifts = () => {
                   <TableRow>
                     <TableCell>{shift.date}</TableCell>
                     <TableCell>{shift.time}</TableCell>
-                    <TableCell>{shift.user.fullName}</TableCell>
+                    <TableCell>{shift.type === 'shift' && shift.user.fullName}</TableCell>
                     <TableCell>AG 192 QZ</TableCell>
-                    <TableCell>{shift.service.name}</TableCell>
+                    <TableCell>{shift.services.map((s) => s.name).join(', ')}</TableCell>
                   </TableRow>
                 ))
               ) : (
