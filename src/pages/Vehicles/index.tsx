@@ -1,5 +1,3 @@
-// agregar toast
-// mostrar los vehiculos
 // hacer BM
 
 import { Container } from "@/components/Container";
@@ -16,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 
-import { Card, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -41,9 +39,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { CirclePlus, Pencil } from "lucide-react";
-import { useState } from "react";
-import { createVehicle } from "@/services/vehicles";
-import type { CreateVehicle } from "@/types/vehicles.types";
+import { useEffect, useState } from "react";
+import { createVehicle, getVehiclesOfUser } from "@/services/vehicles";
+import type { CreateVehicle, Vehicle } from "@/types/vehicles.types";
 import {
   Accordion,
   AccordionContent,
@@ -59,21 +57,20 @@ export const Vehicles = () => {
   const [km, setKm] = useState(0);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [open, setOpen] = useState(false);
+  const [refreshVehiclesTick, setRefreshVehiclesTick] = useState<number>(0);
+  const [Vehicles, setVehicles] = useState<Vehicle[]>([]);
 
-  const vehicles = [
-    {
-      licensePlate: "AG129QZ",
-      model: "Peugeot 208",
-      year: 2023,
-      km: 36000,
-    },
-    {
-      licensePlate: "AH108SA",
-      model: "Scania Serie H",
-      year: 2024,
-      km: 73000,
-    },
-  ];
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      const vehicles = await getVehiclesOfUser();
+      setVehicles(vehicles);
+    };
+    try {
+      fetchVehicles();
+    } catch (error) {
+      console.error(error);
+    }
+  }, [refreshVehiclesTick]);
 
   const handleAddVehicle = async (e: React.FormEvent<HTMLFormElement>) => {
     console.log("entre");
@@ -87,6 +84,7 @@ export const Vehicles = () => {
     console.log(vehicle);
     try {
       await createVehicle(vehicle);
+      setRefreshVehiclesTick((prev) => prev + 1);
       setStatus("success");
       toast.success("Vehiculo agregado correctamente.");
       setOpen(false);
@@ -106,8 +104,8 @@ export const Vehicles = () => {
             Tus vehiculos
           </h1>
           <ScrollArea className="h-[70vh] w-full border rounded-xl overflow-y-auto">
-            {vehicles.length > 0 ? (
-              vehicles.map((vehicle) => {
+            {Vehicles.length > 0 ? (
+              Vehicles.map((vehicle) => {
                 return (
                   <Card className="gap-3 p-3">
                     <div className="flex items-center">
@@ -116,7 +114,7 @@ export const Vehicles = () => {
                           type="single"
                           collapsible
                           className="w-full"
-                          defaultValue="item-1"
+                          defaultValue=""
                         >
                           <AccordionItem value="item-1">
                             <AccordionTrigger>{vehicle.model}</AccordionTrigger>
