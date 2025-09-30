@@ -45,17 +45,6 @@ export function AddressAutocompleteNew({
     const timeout = setTimeout(async () => {
       try {
         setLoading(true)
-        const envVars = import.meta.env as unknown as Record<
-          string,
-          string | undefined
-        >
-        const apiKey = (envVars.VITE_GOOGLE_PLACES_API_KEY ||
-          envVars.VITE_GOOGLE_MAPS_API_KEY) as string | undefined
-        if (!apiKey) {
-          setSuggestions([])
-          setLoading(false)
-          return
-        }
         const data = await fetchSuggestions(input, controller.signal)
         if (!data) {
           console.error('Places Autocomplete error', data)

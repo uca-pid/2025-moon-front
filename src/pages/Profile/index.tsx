@@ -217,7 +217,7 @@ export const Profile = () => {
                           setAddress(e)
                           setAddressTouched(true)
                         }}
-                        onSelect={(e) => setAddress(e?.text.text || '')}
+                        onSelect={(e) => setAddress(e || '')}
                         onResolved={(d) => {
                           setAddressHasNumber(Boolean(d?.hasStreetNumber))
                           setAddressLat(d?.lat ?? null)

@@ -17,7 +17,7 @@ import {
 import { useStore } from "@/zustand/store"
 import { UserRoles } from "@/zustand/session/session.types"
 import type { UserRole } from "@/zustand/session/session.types"
-import { Home, Calendar, Wrench, User, Moon, Sun } from "lucide-react"
+import { Home, Calendar, Wrench, User, Moon, Sun, Plus } from "lucide-react"
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation()
@@ -54,6 +54,12 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       label: "Turnos",
       userRole: [UserRoles.MECHANIC],
       icon: <Wrench className="size-4" />,
+    },
+    {
+      path: "/reserve",
+      label: "Reservar",
+      userRole: [UserRoles.USER],
+      icon: <Plus className="size-4" />,
     },
   ] as const
 
