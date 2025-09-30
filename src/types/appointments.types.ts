@@ -4,22 +4,24 @@ import type { User } from './users.types'
 export interface CreateAppointment {
   date: string
   time: string
-  serviceId: number
+  serviceIds: number[]
   workshopId: number
 }
 
 export interface Appointment {
+  type: 'appointment'
   id: number
   date: string
   time: string
-  service: Service
+  services: Service[]
   workshop: User
 }
 
 export interface Shift {
+  type: 'shift'
   id: number
   date: string
   time: string
   user: User
-  service: Service
+  services: Service[]
 }

@@ -22,11 +22,12 @@ import { sortAppointments } from '@/helpers/sort-appointments'
 import type { User } from '@/types/users.types'
 import { getAllWorkshops } from '@/services/users'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { MultiSelect } from '@/components/MultiSelect'
 
 export const Appointments = () => {
   const [workshop, setWorkshop] = useState<string>('')
   const [workshops, setWorkshops] = useState<User[]>([])
-  const [service, setService] = useState<string>('')
+  const [selectedServices, setSelectedServices] = useState<string[]>([])
   const [services, setServices] = useState<Service[]>([])
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [date, setDate] = useState<Date | undefined>(undefined)
@@ -92,7 +93,7 @@ export const Appointments = () => {
     const appointment: CreateAppointment = {
       date: date ? formatDateToYMD(date) : '',
       time: time,
-      serviceId: services.find((s) => s.name === service)?.id ?? 0,
+      serviceIds: selectedServices.map((s) => Number(s)),
       workshopId: Number(workshop),
     }
     await createAppointment(appointment)
@@ -112,7 +113,7 @@ export const Appointments = () => {
   }, [refreshAppointmentsTick])
 
   const handleDisabled = () => {
-    return !service || !date || !time || service === ''
+    return !selectedServices.length || !date || !time || selectedServices.length === 0
   }
 
   return (
@@ -151,25 +152,19 @@ export const Appointments = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className='flex flex-col gap-3 w-full lg:w-[50%] cursor-pointer'>
-              <Label htmlFor='service' className='px-1 text-lg text-foreground'>
-                Servicio
+            <div className="flex flex-col gap-3 w-full lg:w-[50%] cursor-pointer">
+              <Label htmlFor="service" className="px-1 text-lg text-foreground">
+                Servicios
               </Label>
-              <Select
-                value={service}
-                onValueChange={(value) => setService(value)}
-              >
-                <SelectTrigger className='w-full'>
-                  <SelectValue placeholder='Selecciona un servicio' />
-                </SelectTrigger>
-                <SelectContent className='w-full'>
-                {services.map((service) => (
-                  <SelectItem key={service.name} value={service.name}>
-                    {service.name} - ${service.price ?? 'Consultar'}
-                  </SelectItem>
-                ))}
-                </SelectContent>
-              </Select>
+              <MultiSelect
+                options={services.map((service) => ({
+                  value: service.id.toString(),
+                  label: `${service.name} - $${service.price ?? 'Consultar'}`
+                }))}
+                selected={selectedServices}
+                setSelected={setSelectedServices}
+                placeholder="Selecciona servicios"
+              />
             </div>
             <Button
               variant='outline'
@@ -196,7 +191,7 @@ export const Appointments = () => {
                           Tienes un turno agendado en{' '}
                           {(app as Appointment).workshop.workshopName} el dia{' '}
                           {app.date} a las {app.time} para realizar el servicio{' '}
-                          {app.service.name}.
+                          {app.services?.length > 0? app.services.map((s) => s.name).join(', ') : 'Sin servicios'}.
                         </CardDescription>
                       </CardHeader>
                     </Card>
