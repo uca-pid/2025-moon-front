@@ -180,29 +180,31 @@ export const Appointments = () => {
               Turnos agendados
             </Label>
             <ScrollArea className='h-[70vh] w-full border rounded-xl overflow-y-auto'>
-              {
-                appointments.length > 0 ? (
-                sortAppointments(appointments).map((app) => {
-                  return (
-                    <Card className='flex  ' key={app.id}>
-                      <CardHeader>
-                        <CardTitle>Turno #{app.id}</CardTitle>
-                        <CardDescription>
-                          Tienes un turno agendado en{' '}
-                          {(app as Appointment).workshop.workshopName} el dia{' '}
-                          {app.date} a las {app.time} para realizar el servicio{' '}
-                          {app.services?.length > 0? app.services.map((s) => s.name).join(', ') : 'Sin servicios'}.
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
+              <div className='flex flex-col gap-1 p-1'>
+                {
+                  appointments.length > 0 ? (
+                  sortAppointments(appointments).map((app) => {
+                    return (
+                      <Card className='flex' key={app.id}>
+                        <CardHeader>
+                          <CardTitle>Turno #{app.id}</CardTitle>
+                          <CardDescription>
+                            Tienes un turno agendado en{' '}
+                            {(app as Appointment).workshop.workshopName} el dia{' '}
+                            {app.date} a las {app.time} para realizar el servicio{' '}
+                            {app.services?.length > 0? app.services.map((s) => s.name).join(', ') : 'Sin servicios'}.
+                          </CardDescription>
+                        </CardHeader>
+                      </Card>
+                    )
+                  })
+                  ) : (
+                    <div className='flex justify-center items-center h-full w-full'>
+                      <p className='text-center'>No hay turnos agendados</p>
+                    </div>
                   )
-                })
-                ) : (
-                  <div className='flex justify-center items-center h-full w-full'>
-                    <p className='text-center'>No hay turnos agendados</p>
-                  </div>
-                )
-              }
+                }
+              </div>
             </ScrollArea>
             </div>
           </div>
