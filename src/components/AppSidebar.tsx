@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -13,10 +13,10 @@ import {
   SidebarProvider,
   SidebarSeparator,
   SidebarTrigger,
-} from '@/components/ui/sidebar'
-import { useStore } from '@/zustand/store'
-import { UserRoles } from '@/zustand/session/session.types'
-import type { UserRole } from '@/zustand/session/session.types'
+} from "@/components/ui/sidebar";
+import { useStore } from "@/zustand/store";
+import { UserRoles } from "@/zustand/session/session.types";
+import type { UserRole } from "@/zustand/session/session.types";
 import {
   Home,
   Calendar,
@@ -25,32 +25,33 @@ import {
   Moon,
   Sun,
   Plus,
-  Cog,
+  Car,
   Hammer,
-} from 'lucide-react'
+} from "lucide-react";
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
-  const location = useLocation()
-  const user = useStore((state) => state.user)
-  const themeMode = useStore((state) => state.themeMode)
-  const toggleTheme = useStore((state) => state.toggleTheme)
+  const location = useLocation();
+  const user = useStore((state) => state.user);
+  const themeMode = useStore((state) => state.themeMode);
+  const toggleTheme = useStore((state) => state.toggleTheme);
 
   const isDark =
-    themeMode === 'dark' ||
-    (themeMode === 'system' &&
+    themeMode === "dark" ||
+    (themeMode === "system" &&
       window.matchMedia &&
-      window.matchMedia('(prefers-color-scheme: dark)').matches)
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
 
   const isRealRole = (
     role: UserRole
-  ): role is Exclude<UserRole, typeof UserRoles.NULL> => role !== UserRoles.NULL
+  ): role is Exclude<UserRole, typeof UserRoles.NULL> =>
+    role !== UserRoles.NULL;
 
   type NavItem = {
-    path: string
-    label: string
-    userRole: UserRole[]
-    icon: React.ReactNode
-  }
+    path: string;
+    label: string;
+    userRole: UserRole[];
+    icon: React.ReactNode;
+  };
 
   const navPaths: NavItem[] = [
     {
@@ -66,8 +67,14 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       icon: <Calendar className='size-4' />,
     },
     {
-      path: '/shifts',
-      label: 'Turnos',
+      path: "/vehicles",
+      label: "Mis vehiculos",
+      userRole: [UserRoles.USER],
+      icon: <Car className="size-4" />,
+    },
+    {
+      path: "/shifts",
+      label: "Turnos",
       userRole: [UserRoles.MECHANIC],
       icon: <Wrench className='size-4' />,
     },
@@ -89,15 +96,15 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       userRole: [UserRoles.MECHANIC],
       icon: <Hammer className='size-4' />,
     },
-  ] as const
+  ] as const;
 
   return (
     <SidebarProvider>
-      <Sidebar collapsible='icon' className='border-r'>
-        <SidebarHeader className='flex items-center justify-between p-2'>
-          <div className='flex items-center gap-2'>
-            <img src='/estaller-logo.png' alt='ESTALLER' className='h-8 w-8' />
-            <span className='text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:hidden'>
+      <Sidebar collapsible="icon" className="border-r">
+        <SidebarHeader className="flex items-center justify-between p-2">
+          <div className="flex items-center gap-2">
+            <img src="/estaller-logo.png" alt="ESTALLER" className="h-8 w-8" />
+            <span className="text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
               ESTALLER
             </span>
           </div>
@@ -111,9 +118,9 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
                 {navPaths.map((nav) => {
                   const allowed =
                     isRealRole(user.userRole) &&
-                    nav.userRole.includes(user.userRole)
-                  if (!allowed) return null
-                  const isActive = location.pathname === nav.path
+                    nav.userRole.includes(user.userRole);
+                  if (!allowed) return null;
+                  const isActive = location.pathname === nav.path;
                   return (
                     <SidebarMenuItem key={nav.path}>
                       <SidebarMenuButton
@@ -121,13 +128,13 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
                         isActive={isActive}
                         tooltip={nav.label}
                       >
-                        <Link to={nav.path} className='flex items-center gap-2'>
+                        <Link to={nav.path} className="flex items-center gap-2">
                           {nav.icon}
                           <span>{nav.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  )
+                  );
                 })}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -136,11 +143,11 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
         <SidebarFooter>
           <SidebarMenu className='gap-2'>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip='Cambiar tema' onClick={toggleTheme}>
+              <SidebarMenuButton tooltip="Cambiar tema" onClick={toggleTheme}>
                 {isDark ? (
-                  <Sun className='size-4' />
+                  <Sun className="size-4" />
                 ) : (
-                  <Moon className='size-4' />
+                  <Moon className="size-4" />
                 )}
                 <span>Cambiar tema</span>
               </SidebarMenuButton>
@@ -148,11 +155,11 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={location.pathname === '/profile'}
-                tooltip='Perfil'
+                isActive={location.pathname === "/profile"}
+                tooltip="Perfil"
               >
-                <Link to='/profile' className='flex items-center gap-2'>
-                  <User className='size-4' />
+                <Link to="/profile" className="flex items-center gap-2">
+                  <User className="size-4" />
                   <span>Perfil</span>
                 </Link>
               </SidebarMenuButton>
@@ -162,7 +169,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       </Sidebar>
       {children ? <SidebarInset>{children}</SidebarInset> : null}
     </SidebarProvider>
-  )
-}
+  );
+};
 
 export default AppSidebar
