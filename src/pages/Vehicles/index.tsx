@@ -170,169 +170,194 @@ export const Vehicles = () => {
             Tus vehiculos
           </h1>
           <ScrollArea className="h-[70vh] w-full border rounded-xl overflow-y-auto">
-            {Vehicles.length > 0 ? (
-              Vehicles.map((vehicle) => {
-                return (
-                  <Card className="gap-3 p-3">
-                    <div className="flex items-center">
-                      <div className="flex flex-row p-2 space-x-3 items-center w-full">
-                        <Accordion
-                          type="single"
-                          collapsible
-                          className="w-full"
-                          defaultValue=""
-                        >
-                          <AccordionItem value="item-1">
-                            <AccordionTrigger>{vehicle.model}</AccordionTrigger>
-                            <AccordionContent className="flex flex-col gap-4 text-balance">
-                              <p className="text-sm">
-                                Patente: {vehicle.licensePlate}
-                              </p>
-                              <p className="text-sm">año: {vehicle.year} </p>
-                              <p className="text-sm">
-                                kilometros: {vehicle.km}{" "}
-                              </p>
-                            </AccordionContent>
-                          </AccordionItem>
-                        </Accordion>
-                        <div className="flex flex-row gap-2">
-                          <Sheet open={openChange} onOpenChange={setOpenChange}>
-                            <SheetTrigger asChild className="text-foreground">
-                              <Button
-                                variant="secondary"
-                                size="icon"
-                                className="size-8"
-                                onClick={() => setVehicleToBeChange(vehicle)}
-                              >
-                                <Pencil />
-                              </Button>
-                            </SheetTrigger>
-                            <SheetContent className="text-foreground">
-                              <SheetHeader>
-                                <SheetTitle>
-                                  Modifica los datos de tu Vehiculo
-                                </SheetTitle>
-                                <SheetDescription>
-                                  Aca podes editar los datos de tu vehiculo.
-                                  Cuando hayas cambiado lo que querias cambiar
-                                  no olvides guardar los cambios.
-                                </SheetDescription>
-                              </SheetHeader>
-                              <form
-                                onSubmit={(e) => handleUpdateVehicle(e, id)}
-                                className="flex flex-col gap-4"
-                              >
-                                <div className="grid auto-rows-min gap-4 px-4">
-                                  <div className="grid gap-3">
-                                    <Label htmlFor="licensePlate">
-                                      Patente
-                                    </Label>
-                                    <Input
-                                      id="licensePlate"
-                                      name="licensePlate"
-                                      value={licensePlateChange}
-                                      onChange={(e) =>
-                                        setLicensePlateChange(e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div className="grid auto-rows-min gap-4 px-4">
-                                  <div className="grid gap-3">
-                                    <Label htmlFor="model">Modelo</Label>
-                                    <Input
-                                      id="model"
-                                      name="model"
-                                      value={modelChange}
-                                      onChange={(e) =>
-                                        setModelChange(e.target.value)
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div className="grid auto-rows-min gap-4 px-4">
-                                  <div className="grid gap-3">
-                                    <Label htmlFor="year">Año</Label>
-                                    <Input
-                                      id="year"
-                                      name="year"
-                                      value={yearChange}
-                                      onChange={(e) =>
-                                        setYearChange(Number(e.target.value))
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div className="grid auto-rows-min gap-4 px-4">
-                                  <div className="grid gap-3">
-                                    <Label htmlFor="km">Kilometraje</Label>
-                                    <Input
-                                      id="km"
-                                      name="km"
-                                      value={kmChange}
-                                      onChange={(e) =>
-                                        setKmChange(Number(e.target.value))
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <SheetFooter>
-                                  <Button type="submit">Guardar cambios</Button>
-                                  <SheetClose asChild>
-                                    <Button variant="outline">Salir</Button>
-                                  </SheetClose>
-                                </SheetFooter>
-                              </form>
-                            </SheetContent>
-                          </Sheet>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger
-                              asChild
-                              className="text-foreground"
+            <div className="gap-3 flex flex-col">
+              {Vehicles.length > 0 ? (
+                Vehicles.map((vehicle) => {
+                  return (
+                    <div className="gap-3">
+                      <Card className="gap-3 p-3">
+                        <div className="flex items-center">
+                          <div className="flex flex-row p-2 space-x-3 items-center w-full">
+                            <Accordion
+                              type="single"
+                              collapsible
+                              className="w-full"
+                              defaultValue=""
                             >
-                              <Button
-                                variant="destructive"
-                                onClick={() => setId(vehicle.id)}
+                              <AccordionItem value="item-1">
+                                <AccordionTrigger>
+                                  {vehicle.model}
+                                </AccordionTrigger>
+                                <AccordionContent className="flex flex-col gap-4 text-balance">
+                                  <p className="text-sm">
+                                    Patente: {vehicle.licensePlate}
+                                  </p>
+                                  <p className="text-sm">
+                                    año: {vehicle.year}{" "}
+                                  </p>
+                                  <p className="text-sm">
+                                    kilometros: {vehicle.km}{" "}
+                                  </p>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                            <div className="flex flex-row gap-2">
+                              <Sheet
+                                open={openChange}
+                                onOpenChange={setOpenChange}
                               >
-                                Eliminar
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent className="text-foreground">
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Estas seguro de querer eliminar este vehiculo?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  El vehiculo que estas intentando eliminar es
-                                  el {vehicle.model} con patente{" "}
-                                  {vehicle.licensePlate}. Si eliminas este
-                                  vehiculo ya no estara disponible y deberas
-                                  ingresarlo nuevamente para sacar un turno para
-                                  el.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteVehicle(id)}
+                                <SheetTrigger
+                                  asChild
+                                  className="text-foreground"
                                 >
-                                  Eliminar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                                  <Button
+                                    variant="secondary"
+                                    size="icon"
+                                    className="size-8"
+                                    onClick={() =>
+                                      setVehicleToBeChange(vehicle)
+                                    }
+                                  >
+                                    <Pencil />
+                                  </Button>
+                                </SheetTrigger>
+                                <SheetContent className="text-foreground">
+                                  <SheetHeader>
+                                    <SheetTitle>
+                                      Modifica los datos de tu Vehiculo
+                                    </SheetTitle>
+                                    <SheetDescription>
+                                      Aca podes editar los datos de tu vehiculo.
+                                      Cuando hayas cambiado lo que querias
+                                      cambiar no olvides guardar los cambios.
+                                    </SheetDescription>
+                                  </SheetHeader>
+                                  <form
+                                    onSubmit={(e) => handleUpdateVehicle(e, id)}
+                                    className="flex flex-col gap-4"
+                                  >
+                                    <div className="grid auto-rows-min gap-4 px-4">
+                                      <div className="grid gap-3">
+                                        <Label htmlFor="licensePlate">
+                                          Patente
+                                        </Label>
+                                        <Input
+                                          id="licensePlate"
+                                          name="licensePlate"
+                                          value={licensePlateChange}
+                                          onChange={(e) =>
+                                            setLicensePlateChange(
+                                              e.target.value
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid auto-rows-min gap-4 px-4">
+                                      <div className="grid gap-3">
+                                        <Label htmlFor="model">Modelo</Label>
+                                        <Input
+                                          id="model"
+                                          name="model"
+                                          value={modelChange}
+                                          onChange={(e) =>
+                                            setModelChange(e.target.value)
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid auto-rows-min gap-4 px-4">
+                                      <div className="grid gap-3">
+                                        <Label htmlFor="year">Año</Label>
+                                        <Input
+                                          id="year"
+                                          name="year"
+                                          value={yearChange}
+                                          onChange={(e) =>
+                                            setYearChange(
+                                              Number(e.target.value)
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid auto-rows-min gap-4 px-4">
+                                      <div className="grid gap-3">
+                                        <Label htmlFor="km">Kilometraje</Label>
+                                        <Input
+                                          id="km"
+                                          name="km"
+                                          value={kmChange}
+                                          onChange={(e) =>
+                                            setKmChange(Number(e.target.value))
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                    <SheetFooter>
+                                      <Button type="submit">
+                                        Guardar cambios
+                                      </Button>
+                                      <SheetClose asChild>
+                                        <Button variant="outline">Salir</Button>
+                                      </SheetClose>
+                                    </SheetFooter>
+                                  </form>
+                                </SheetContent>
+                              </Sheet>
+
+                              <AlertDialog>
+                                <AlertDialogTrigger
+                                  asChild
+                                  className="text-foreground"
+                                >
+                                  <Button
+                                    variant="destructive"
+                                    onClick={() => setId(vehicle.id)}
+                                  >
+                                    Eliminar
+                                  </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent className="text-foreground">
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>
+                                      Estas seguro de querer eliminar este
+                                      vehiculo?
+                                    </AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      El vehiculo que estas intentando eliminar
+                                      es el {vehicle.model} con patente{" "}
+                                      {vehicle.licensePlate}. Si eliminas este
+                                      vehiculo ya no estara disponible y deberas
+                                      ingresarlo nuevamente para sacar un turno
+                                      para el.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>
+                                      Cancelar
+                                    </AlertDialogCancel>
+                                    <AlertDialogAction
+                                      onClick={() => handleDeleteVehicle(id)}
+                                    >
+                                      Eliminar
+                                    </AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      </Card>
                     </div>
-                  </Card>
-                );
-              })
-            ) : (
-              <div className="flex justify-center items-center h-full w-full text-foreground">
-                <p className="text-center">No hay vehiculos actualmente</p>
-              </div>
-            )}
+                  );
+                })
+              ) : (
+                <div className="flex justify-center items-center h-full w-full text-foreground">
+                  <p className="text-center">No hay vehiculos actualmente</p>
+                </div>
+              )}
+            </div>
           </ScrollArea>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>

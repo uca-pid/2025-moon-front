@@ -14,33 +14,34 @@ export const Home = () => {
         <h1 className="text-primary text-4xl md:text-5xl font-extrabold tracking-tight mb-8">
           Hola <span className="italic">{user.fullName}</span>
         </h1>
-
-        {user.userRole === UserRoles.MECHANIC ? (
-          <Button
-            variant="outline"
-            className="px-6 py-5 text-foreground"
-            onClick={() => navigate("/shifts")}
-          >
-            Queres ver tus turnos?
-          </Button>
-        ) : (
-          <div className="flex flex-col justify-evenly">
+        <div className="gap-3 flex w-full">
+          {user.userRole === UserRoles.MECHANIC ? (
             <Button
               variant="outline"
-              className="px-6 py-5 text-foreground"
-              onClick={() => navigate("/appointments")}
+              className="px-6 py-5 text-foreground gap-3"
+              onClick={() => navigate("/shifts")}
             >
-              Queres reservar un turno?
+              Queres ver tus turnos?
             </Button>
-            <Button
-              variant="outline"
-              className="px-6 py-5 text-foreground"
-              onClick={() => navigate("/vehicles")}
-            >
-              Queres ver tus vehiculos?
-            </Button>
-          </div>
-        )}
+          ) : (
+            <div className="flex flex-col justify-evenly gap-5 w-full">
+              <Button
+                variant="outline"
+                className="px-6 py-5 text-foreground gap-3"
+                onClick={() => navigate("/appointments")}
+              >
+                Queres reservar un turno?
+              </Button>
+              <Button
+                variant="outline"
+                className="px-6 py-5 text-foreground gap-3"
+                onClick={() => navigate("/vehicles")}
+              >
+                Queres ver tus vehiculos?
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </Container>
   );
