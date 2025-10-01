@@ -12,8 +12,10 @@ export const Shifts = () => {
   useEffect(() => {
     const fetchShifts = async () => {
       const shifts = await getNextAppointmentsOfMechanic();
-      console.log("shifts", shifts)
-      setShifts(shifts);
+      setShifts(shifts.map((shift: Shift) => ({
+        ...shift,
+        type: 'shift',
+      })));
     };
     fetchShifts();
   }, []);
@@ -35,7 +37,7 @@ export const Shifts = () => {
               {
                 shifts.length > 0 ? (
                 sortAppointments(shifts).map((shift) => (
-                  <TableRow>
+                  <TableRow key={shift.id}>
                     <TableCell>{shift.date}</TableCell>
                     <TableCell>{shift.time}</TableCell>
                     <TableCell>{shift.type === 'shift' && shift.user.fullName}</TableCell>

@@ -2,7 +2,8 @@ export interface PaginatedQueryDto {
   page: number
   pageSize: number
   search: string
-  order: string
+  orderBy: string
+  orderDir: string
 }
 
 export interface PaginatedResponseDto<T> {
@@ -10,6 +11,6 @@ export interface PaginatedResponseDto<T> {
   total: number
   page: number
   pageSize: number
-  orderId: string
-  orderDesc: boolean
+  orderBy: string
+  orderDir: string
 }

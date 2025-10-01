@@ -107,11 +107,9 @@ export function AddressAutocompleteNew({
                     className='px-3 py-2 cursor-pointer hover:bg-accent hover:text-accent-foreground'
                     onMouseDown={async (e) => {
                       e.preventDefault()
-                      console.log(sug)
                       onSelect(sug.text)
                       onChange(sug.text)
                       try {
-                        console.log(sug.placeId)
                         const details = await fetchAddressDetails(sug.placeId)
                         const lat = details?.location?.latitude as
                           | number

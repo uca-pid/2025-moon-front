@@ -48,7 +48,6 @@ export function LoginForm({
       const response: LoginResponse = await login(email, password)
 
       const userDecoded = decodeJwtPayload(response.token) as unknown as User
-      console.log(userDecoded)
       if (userDecoded) {
         const expiresAt = getExpirationDate(userDecoded.exp as number)
         loginStore({
