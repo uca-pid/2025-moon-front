@@ -26,6 +26,7 @@ import {
   Sun,
   Plus,
   Cog,
+  Hammer,
 } from 'lucide-react'
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
@@ -81,6 +82,12 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       label: 'Repuestos',
       userRole: [UserRoles.MECHANIC],
       icon: <Cog className='size-4' />,
+    },
+    {
+      path: '/services',
+      label: 'Servicios',
+      userRole: [UserRoles.MECHANIC],
+      icon: <Hammer className='size-4' />,
     },
   ] as const
 

@@ -1,34 +1,25 @@
 import { Container } from "@/components/Container"
-import { create, edit, getSpareParts, remove } from "@/services/spare-parts"
-import type { PaginatedQueryDto, PaginatedResponseDto } from "@/types/paginated.types"
-import type { SparePartData } from "@/types/spare-part.types"
-import { useEffect, useMemo, useState } from "react"
-import { SparePartDialog } from "./modal"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { useQuery } from "react-query"
-import {
-} from "@/components/ui/pagination"
-import { Trash, Package, Hash, Box, Search, Plus } from "lucide-react"
-import { TableCell, Table, TableHeader, TableBody, TableHead, TableRow } from "@/components/ui/table"
+import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Hash, Package, Box, Trash, Plus } from "lucide-react"
 import { CustomPagination } from "@/components/CustomPagination"
-
-export const SpareParts = () => {
-  const onSave = async () => {
-    const isCreating = !editingSparePart?.id
-    if (isCreating) {
-      await create(editingSparePart!)
-    } else {
-      await edit(editingSparePart!.id!, editingSparePart!)
-    }
-    setIsOpen(false)
-    setEditingSparePart(null)
-    refetch()
-  }
+import { useEffect, useMemo, useState } from "react"
+import type { CreateService, Service } from "@/types/services.types"
+import { useQuery } from "react-query"
+import type { PaginatedQueryDto, PaginatedResponseDto } from "@/types/paginated.types"
+import { createService, getServices, updateService } from "@/services/services"
+import { ServiceDialog } from "./modal"
+import type { SparePart } from "@/types/spare-part.types"
+  
+export const Services = () => {
+  const [orderBy, setOrderBy] = useState("id")
+  const [orderDir, setOrderDir] = useState("asc")
   const [isOpen, setIsOpen] = useState(false)
-  const [editingSparePart, setEditingSparePart] = useState<SparePartData | null>(null)
+  const [editingService, setEditingService] = useState<CreateService | null>(null)
   const [pagination, setPagination] = useState<PaginatedQueryDto>({
     page: 1,
     pageSize: 10,
@@ -38,9 +29,49 @@ export const SpareParts = () => {
   })
   const [searchInput, setSearchInput] = useState<string>("")
 
-  const { data, refetch, isLoading } = useQuery<PaginatedResponseDto<SparePartData>>(
-    ["spare-parts", pagination],
-    () => getSpareParts(pagination),
+  const mapToCreateService = (service: Service): CreateService => {
+    const rawSpareParts = (service?.spareParts as SparePart[]) ?? []
+    const mappedSpareParts = rawSpareParts
+      .map((sp) => {
+        const spRec = (sp ?? {}) as Record<string, unknown>
+        const nested = (spRec.sparePart as Record<string, unknown>) || undefined
+        const sparePartId = ((): number | null => {
+          if (typeof spRec.sparePartId !== 'undefined') return Number(spRec.sparePartId)
+          if (nested && typeof nested.id !== 'undefined') return Number(nested.id)
+          return null
+        })()
+        let quantity = Number(spRec.quantity)
+        if (!quantity || quantity < 1) quantity = 1
+        if (sparePartId == null || !Number.isFinite(sparePartId)) return null
+        return { sparePartId, quantity }
+      })
+      .filter((v): v is { sparePartId: number; quantity: number } => v !== null)
+
+    return {
+      id: typeof service.id !== 'undefined' ? Number(service.id) : undefined,
+      name: (service.name as string) ?? "",
+      price: Number(service.price),
+      spareParts: mappedSpareParts,
+    }
+  }
+
+  const onSave = async () => {
+    const isCreating = !editingService?.id
+    if (isCreating) {
+      const payload = mapToCreateService(editingService as Service)
+      await createService(payload)
+    } else {
+      const payload = mapToCreateService(editingService as Service)
+      await updateService(payload)
+    }
+    setIsOpen(false)
+    setEditingService(null)
+    refetch()
+  }
+
+  const { data, refetch, isLoading } = useQuery<PaginatedResponseDto<Service>>(
+    ["services", pagination],
+    () => getServices(pagination),
     {
       initialData: undefined,
       cacheTime: 0,
@@ -55,13 +86,6 @@ export const SpareParts = () => {
       },
     },
   )
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      setPagination((prev) => ({ ...prev, page: 1, search: searchInput }))
-    }, 1000)
-    return () => clearTimeout(timeout)
-  }, [searchInput])
 
   const totalPages = useMemo(() => {
     if (!data) return 1
@@ -85,41 +109,46 @@ export const SpareParts = () => {
     if (isLastPage) return
     goToPage(pagination.page + 1)
   }
-
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setPagination((prev) => ({ ...prev, page: 1, search: searchInput }))
+    }, 1000)
+    return () => clearTimeout(timeout)
+  }, [searchInput])
+  
   return (
     <Container>
-      <SparePartDialog
+      <ServiceDialog
         isOpen={isOpen}
         onOpenChange={setIsOpen}
-        sparePart={editingSparePart}
-        onChangeSparePart={setEditingSparePart}
+        service={editingService as Service}
+        onChangeService={setEditingService}
         onSave={onSave}
       />
-
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold text-primary">Gestión de Repuestos</h1>
-          <p className="text-muted-foreground">Administra el inventario de repuestos y su stock</p>
+          <h1 className="text-3xl font-bold text-primary">Gestión de Servicios</h1>
+          <p className="text-muted-foreground">Administra el inventario de servicios y su precio</p>
         </div>
-
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <CardTitle>Inventario de Repuestos</CardTitle>
+                <CardTitle>Inventario de Servicios</CardTitle>
                 <CardDescription>
-                  {data?.total || 0} {data?.total === 1 ? "repuesto registrado" : "repuestos registrados"}
+                  {data?.total || 0} {data?.total === 1 ? "servicio registrado" : "servicios registrados"}
                 </CardDescription>
               </div>
 
               <Button
                 onClick={() => {
-                  setEditingSparePart({ id: undefined, name: "", stock: 0 })
+                  setEditingService({ name: "", price: 0, spareParts: [] })
                   setIsOpen(true)
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Agregar Repuesto
+                Agregar Servicio
               </Button>
             </div>
 
@@ -136,9 +165,9 @@ export const SpareParts = () => {
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Ordenar por</span>
                 <Select
-                  value={pagination.orderBy}
+                  value={orderBy}
                   onValueChange={(val) => {
-                    setPagination((prev) => ({ ...prev, page: 1, orderBy: val }))
+                    setOrderBy(val)
                   }}
                 >
                   <SelectTrigger className="w-32">
@@ -147,13 +176,13 @@ export const SpareParts = () => {
                   <SelectContent>
                     <SelectItem value="id">ID</SelectItem>
                     <SelectItem value="name">Nombre</SelectItem>
-                    <SelectItem value="stock">Stock</SelectItem>
+                    <SelectItem value="price">Precio</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
-                  value={pagination.orderDir}
+                  value={orderDir}
                   onValueChange={(val) => {
-                    setPagination((prev) => ({ ...prev, page: 1, orderDir: val }))
+                    setOrderDir(val)
                   }}
                 >
                   <SelectTrigger className="w-24">
@@ -173,7 +202,7 @@ export const SpareParts = () => {
               <div className="flex items-center justify-center py-12">
                 <div className="flex flex-col items-center gap-2">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                  <p className="text-sm text-muted-foreground">Cargando repuestos...</p>
+                  <p className="text-sm text-muted-foreground">Cargando servicios...</p>
                 </div>
               </div>
             ) : data?.data && data.data.length > 0 ? (
@@ -197,27 +226,27 @@ export const SpareParts = () => {
                         <TableHead>
                           <div className="flex items-center gap-2">
                             <Box className="h-4 w-4" />
-                            Stock
+                            Precio
                           </div>
                         </TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {data.data.map((sparePart) => (
+                      {data.data.map((service) => (
                         <TableRow
                           className="cursor-pointer hover:bg-muted/50"
                           onClick={() => {
                             setIsOpen(true)
-                            setEditingSparePart(sparePart)
+                            setEditingService(mapToCreateService(service as Service))
                           }}
-                          key={sparePart.id}
+                          key={service.id}
                         >
-                          <TableCell className="font-medium">{sparePart.id}</TableCell>
-                          <TableCell>{sparePart.name}</TableCell>
+                          <TableCell className="font-medium">{service.id}</TableCell>
+                          <TableCell>{service.name}</TableCell>
                           <TableCell>
-                            <span className={sparePart.stock && sparePart.stock < 10 ? "text-destructive font-semibold" : ""}>
-                              {sparePart.stock}
+                            <span className={service.price && service.price < 10 ? "text-destructive font-semibold" : ""}>
+                              {service.price}
                             </span>
                           </TableCell>
                           <TableCell>
@@ -226,7 +255,6 @@ export const SpareParts = () => {
                               size="icon"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                remove(sparePart.id!).then(() => refetch())
                               }}
                             >
                               <Trash size={20} className="text-destructive" />
@@ -241,7 +269,7 @@ export const SpareParts = () => {
                 <div className="flex items-center justify-between mt-4">
                   <p className="text-sm text-muted-foreground">
                     Mostrando {(pagination.page - 1) * pagination.pageSize + 1} a{" "}
-                    {Math.min(pagination.page * pagination.pageSize, data.total)} de {data.total} repuestos
+                    {Math.min(pagination.page * pagination.pageSize, data.total)} de {data.total} servicios
                   </p>
                   <CustomPagination
                     goPrev={goPrev}
@@ -260,11 +288,11 @@ export const SpareParts = () => {
                   <Package className="h-8 w-8 text-muted-foreground" />
                 </div>
                 <div className="text-center">
-                  <h3 className="font-semibold text-lg">No hay repuestos registrados</h3>
+                  <h3 className="font-semibold text-lg">No hay servicios registrados</h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {searchInput
-                      ? "No se encontraron repuestos con ese criterio de búsqueda"
-                      : "Comienza agregando tu primer repuesto al inventario"}
+                      ? "No se encontraron servicios con ese criterio de búsqueda"
+                      : "Comienza agregando tu primer servicio"}
                   </p>
                 </div>
               </div>

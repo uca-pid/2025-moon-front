@@ -35,7 +35,7 @@ export const MultiSelect = ({ options, selected, setSelected, placeholder }: Mul
       </PopoverTrigger>
       <PopoverContent className="p-0">
         <Command>
-          <CommandGroup>
+          <CommandGroup className="max-h-[200px] overflow-y-auto">
             {options.map((option) => (
               <CommandItem
                 key={option.value}
