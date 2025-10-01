@@ -11,6 +11,7 @@ import { Profile } from '@/pages/Profile'
 import { Shifts } from '@/pages/Shifts'
 import ChangePassword from '@/pages/ChangePassword'
 import { AppointmentsReserved } from '@/pages/AppointmentsReserved'
+import { SpareParts } from '@/pages/SpareParts'
 
 export const Routing = () => {
   return (
@@ -36,6 +37,13 @@ export const Routing = () => {
           }
         >
           <Route path='/shifts' element={<Shifts />} />
+        </Route>
+        <Route
+          element={
+            <RoleResolver role={UserRoles.MECHANIC} redirectPath='/login' />
+          }
+        >
+          <Route path='/spare-parts' element={<SpareParts />} />
         </Route>
       </Route>
 
