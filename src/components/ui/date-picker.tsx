@@ -78,7 +78,7 @@ export function DatePicker({
 
   return (
     <div className={cn("flex gap-4", className)}>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 w-full">
         <div className="flex items-center gap-2">
           <Label htmlFor="date-picker" className="px-1 text-lg">
             Fecha
@@ -94,13 +94,13 @@ export function DatePicker({
             </TooltipContent>
           </Tooltip>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-col lg:flex-row w-full">
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 id="date-picker"
-                className="justify-between font-normal"
+                className="justify-between font-normal w-full lg:w-auto"
               >
                 {date ? date.toLocaleDateString() : "Selecciona una fecha"}
                 <ChevronDownIcon />
@@ -124,10 +124,10 @@ export function DatePicker({
           </Popover>
           {hasTimePicker && (
             <Select onValueChange={(value) => setTime(value)}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full lg:w-auto">
                 <SelectValue placeholder="Seleccione un horario" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-[300px] overflow-y-auto">
                 <SelectGroup>
                   <SelectLabel>Horarios Disponibles</SelectLabel>
                   {availableHours?.map((item: { hours: string[] }, i: number) => (

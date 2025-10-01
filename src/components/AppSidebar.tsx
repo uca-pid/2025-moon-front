@@ -26,6 +26,7 @@ import {
   Sun,
   Plus,
   Car,
+  Hammer,
 } from "lucide-react";
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
@@ -54,16 +55,16 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
 
   const navPaths: NavItem[] = [
     {
-      path: "/home",
-      label: "Inicio",
+      path: '/home',
+      label: 'Inicio',
       userRole: [UserRoles.USER, UserRoles.MECHANIC],
-      icon: <Home className="size-4" />,
+      icon: <Home className='size-4' />,
     },
     {
-      path: "/appointments",
-      label: "Mis turnos",
+      path: '/appointments',
+      label: 'Mis turnos',
       userRole: [UserRoles.USER],
-      icon: <Calendar className="size-4" />,
+      icon: <Calendar className='size-4' />,
     },
     {
       path: "/vehicles",
@@ -75,13 +76,25 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       path: "/shifts",
       label: "Turnos",
       userRole: [UserRoles.MECHANIC],
-      icon: <Wrench className="size-4" />,
+      icon: <Wrench className='size-4' />,
     },
     {
-      path: "/reserve",
-      label: "Reservar",
+      path: '/reserve',
+      label: 'Reservar',
       userRole: [UserRoles.USER],
-      icon: <Plus className="size-4" />,
+      icon: <Plus className='size-4' />,
+    },
+    {
+      path: '/spare-parts',
+      label: 'Repuestos',
+      userRole: [UserRoles.MECHANIC],
+      icon: <Cog className='size-4' />,
+    },
+    {
+      path: '/services',
+      label: 'Servicios',
+      userRole: [UserRoles.MECHANIC],
+      icon: <Hammer className='size-4' />,
     },
   ] as const;
 
@@ -101,7 +114,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className="gap-2">
+              <SidebarMenu className='gap-2'>
                 {navPaths.map((nav) => {
                   const allowed =
                     isRealRole(user.userRole) &&
@@ -128,7 +141,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarMenu className="gap-2">
+          <SidebarMenu className='gap-2'>
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="Cambiar tema" onClick={toggleTheme}>
                 {isDark ? (
@@ -159,4 +172,4 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
   );
 };
 
-export default AppSidebar;
+export default AppSidebar
