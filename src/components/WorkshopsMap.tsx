@@ -2,6 +2,7 @@ import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import type { User } from '@/types/users.types'
+import { Button } from './ui/button'
 
 const defaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -17,9 +18,10 @@ L.Marker.prototype.options.icon = defaultIcon
 
 type MapProps = {
   workshops: User[]
+  handleSelectWorkshop: (id: number) => void
 }
 
-export const WorkshopsMap = ({ workshops }: MapProps) => {
+export const WorkshopsMap = ({ workshops, handleSelectWorkshop }: MapProps) => {
   const validWorkshops = workshops.filter(
     (w) => w.addressLatitude && w.addressLongitude
   )
@@ -50,6 +52,8 @@ export const WorkshopsMap = ({ workshops }: MapProps) => {
             <strong>{w.workshopName}</strong>
             <br />
             {w.address}
+            <br />
+            <Button variant="outline" size="sm" onClick={() => handleSelectWorkshop(w.id)}>Seleccionar taller</Button>
           </Popup>
         </Marker>
       ))}

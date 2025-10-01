@@ -26,6 +26,8 @@ export const Reserve = () => {
   const [services, setServices] = useState<Service[]>([])
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [time, setTime] = useState<string>('')
+  const [showMap, setShowMap] = useState<boolean>(false)
+
   const navigate = useNavigate()
 
   const availableHours = [
@@ -101,6 +103,11 @@ export const Reserve = () => {
     return !selectedServices.length || !date || !time || selectedServices.length === 0
   }
 
+  const handleSelectWorkshop = (id: number) => {
+    setWorkshop(id.toString())
+    setShowMap(false)
+  }
+
   return (
     <Container>
       <div className='flex flex-col gap-4 p-6'>
@@ -136,16 +143,16 @@ export const Reserve = () => {
               </SelectContent>
             </Select>
           </div>
-          <Dialog>
+          <Dialog open={showMap} onOpenChange={setShowMap}>
             <DialogTrigger asChild>
-              <Button variant="outline">Ver en mapa</Button>
+              <Button variant="outline" onClick={() => setShowMap(true)}>Ver en mapa</Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl text-foreground h-[50vh] flex flex-col">
               <DialogHeader>
                 <DialogTitle>Ubicaciones de talleres</DialogTitle>
               </DialogHeader>
               <div className="w-full flex-1 min-h-0">
-                <WorkshopsMap workshops={workshops} />
+                <WorkshopsMap workshops={workshops} handleSelectWorkshop={handleSelectWorkshop} />
               </div>
             </DialogContent>
           </Dialog>
