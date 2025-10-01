@@ -11,6 +11,8 @@ import { Profile } from '@/pages/Profile'
 import { Shifts } from '@/pages/Shifts'
 import ChangePassword from '@/pages/ChangePassword'
 import { AppointmentsReserved } from '@/pages/AppointmentsReserved'
+import { SpareParts } from '@/pages/SpareParts'
+import { Services } from '@/pages/Services'
 
 export const Routing = () => {
   return (
@@ -36,6 +38,8 @@ export const Routing = () => {
           }
         >
           <Route path='/shifts' element={<Shifts />} />
+          <Route path='/spare-parts' element={<SpareParts />} />
+          <Route path='/services' element={<Services />} />
         </Route>
       </Route>
 
