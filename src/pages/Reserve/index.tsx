@@ -16,6 +16,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MultiSelect } from '@/components/MultiSelect'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { WorkshopsMap } from '@/components/WorkshopsMap'
+import { toast } from 'sonner'
+import { useNavigate } from 'react-router-dom'
 
 export const Reserve = () => {
   const [workshop, setWorkshop] = useState<string>('')
@@ -24,6 +26,7 @@ export const Reserve = () => {
   const [services, setServices] = useState<Service[]>([])
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [time, setTime] = useState<string>('')
+  const navigate = useNavigate()
 
   const availableHours = [
     {
@@ -57,7 +60,6 @@ export const Reserve = () => {
       const workshops = await getAllWorkshops()
       setWorkshops(workshops)
     }
-
     try {
       fetchWorkshops()
     } catch (error) {
@@ -79,14 +81,20 @@ export const Reserve = () => {
   }, [])
 
   const handleCreateAppointment = async () => {
-    console.log(workshop)
     const appointment: CreateAppointment = {
       date: date ? formatDateToYMD(date) : '',
       time: time,
       serviceIds: selectedServices.map((s) => Number(s)),
       workshopId: Number(workshop),
     }
-    await createAppointment(appointment)
+    try {
+      await createAppointment(appointment)
+      toast.success('Turno reservado correctamente')
+    } catch {
+      toast.error('No se pudo reservar el turno')
+    } finally {
+      navigate('/appointments')
+    }
   }
 
   const handleDisabled = () => {
