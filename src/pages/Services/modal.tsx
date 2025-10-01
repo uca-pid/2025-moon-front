@@ -36,9 +36,18 @@ export const ServiceDialog = ({
   const title = isCreating
     ? 'Creando servicio'
     : `Editando servicio #${service?.id}`
-  const { data: sparePartsResponse } = useQuery<PaginatedResponseDto<SparePart>>(
+  const { data: sparePartsResponse } = useQuery<
+    PaginatedResponseDto<SparePart>
+  >(
     ['spare-parts', 'for-service-modal'],
-    () => getSpareParts({ page: 1, pageSize: 1000, search: '', orderBy: 'id', orderDir: 'asc' }),
+    () =>
+      getSpareParts({
+        page: 1,
+        pageSize: 1000,
+        search: '',
+        orderBy: 'id',
+        orderDir: 'asc',
+      }),
     { cacheTime: 5 * 60 * 1000 }
   )
 
@@ -68,7 +77,9 @@ export const ServiceDialog = ({
       const rec = (sp ?? {}) as Record<string, unknown>
       let id = toNumber(rec.sparePartId)
       if (id == null) {
-        const sparePartObj = rec.sparePart as Record<string, unknown> | undefined
+        const sparePartObj = rec.sparePart as
+          | Record<string, unknown>
+          | undefined
         if (sparePartObj) {
           id = toNumber(sparePartObj.id)
         }
@@ -80,10 +91,14 @@ export const ServiceDialog = ({
     return result
   }, [service?.spareParts])
 
-  const selectedSparePartIds = useMemo(() => normalizedSpareParts.map((sp) => String(sp.sparePartId)), [normalizedSpareParts])
+  const selectedSparePartIds = useMemo(
+    () => normalizedSpareParts.map((sp) => String(sp.sparePartId)),
+    [normalizedSpareParts]
+  )
 
   const onChangeSelectedSpareParts = (newSelected: string[]) => {
-    const current = service ?? ({ name: '', price: 0, spareParts: [] } as CreateService)
+    const current =
+      service ?? ({ name: '', price: 0, spareParts: [] } as CreateService)
     const currentMap = new Map<number, number>()
     for (const sp of normalizedSpareParts) {
       currentMap.set(sp.sparePartId, sp.quantity)
@@ -104,7 +119,8 @@ export const ServiceDialog = ({
   }
 
   const onChangeQuantity = (sparePartId: number, quantity: number) => {
-    const current = service ?? ({ name: '', price: 0, spareParts: [] } as CreateService)
+    const current =
+      service ?? ({ name: '', price: 0, spareParts: [] } as CreateService)
     const nextSpareParts = normalizedSpareParts.map((sp) =>
       Number(sp.sparePartId) === sparePartId ? { ...sp, quantity } : sp
     )
@@ -126,7 +142,10 @@ export const ServiceDialog = ({
               id='name'
               value={service?.name}
               onChange={(e) =>
-                onChangeService?.({ ...service, name: e.target.value } as CreateService)
+                onChangeService?.({
+                  ...service,
+                  name: e.target.value,
+                } as CreateService)
               }
             />
           </div>
@@ -155,18 +174,53 @@ export const ServiceDialog = ({
             {normalizedSpareParts.length > 0 && (
               <div className='mt-3 space-y-2'>
                 {normalizedSpareParts.map((sp) => {
-                  const label = sparePartOptions.find((o) => o.value === String(sp.sparePartId))?.label ?? `#${sp.sparePartId}`
+                  const label =
+                    sparePartOptions.find(
+                      (o) => o.value === String(sp.sparePartId)
+                    )?.label ?? `#${sp.sparePartId}`
+                  const handleRemoveSparePart = () => {
+                    const current =
+                      service ??
+                      ({ name: '', price: 0, spareParts: [] } as CreateService)
+                    const nextSpareParts = normalizedSpareParts.filter(
+                      (item) => item.sparePartId !== sp.sparePartId
+                    )
+                    onChangeService?.({
+                      ...current,
+                      spareParts: nextSpareParts,
+                    })
+                  }
                   return (
-                    <div key={sp.sparePartId} className='flex items-center justify-between gap-3'>
-                      <span className='text-sm'>{label}</span>
+                    <div
+                      key={sp.sparePartId}
+                      className='flex items-center justify-between gap-3'
+                    >
+                      <div>
+                        <button
+                          type='button'
+                          aria-label='Eliminar repuesto'
+                          className='text-destructive hover:opacity-50 px-2 cursor-pointer mr-2'
+                          onClick={handleRemoveSparePart}
+                        >
+                          x
+                        </button>
+                        <span className='text-sm'>{label}</span>
+                      </div>
                       <div className='flex items-center gap-2'>
-                        <Label htmlFor={`qty-${sp.sparePartId}`}>Cantidad</Label>
+                        <Label htmlFor={`qty-${sp.sparePartId}`}>
+                          Cantidad
+                        </Label>
                         <Input
                           id={`qty-${sp.sparePartId}`}
                           type='number'
                           min={1}
                           value={sp.quantity}
-                          onChange={(e) => onChangeQuantity(sp.sparePartId, Math.max(1, Number(e.target.value)))}
+                          onChange={(e) =>
+                            onChangeQuantity(
+                              sp.sparePartId,
+                              Math.max(1, Number(e.target.value))
+                            )
+                          }
                           className='w-28'
                         />
                       </div>
