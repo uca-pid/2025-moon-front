@@ -27,6 +27,7 @@ import {
   Plus,
   Car,
   Hammer,
+  Cog,
 } from "lucide-react";
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
