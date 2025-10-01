@@ -10,7 +10,7 @@ export const Home = () => {
 
   return (
     <Container>
-      <div className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
+      <div className="w-full max-w-6xl flex-1 p-8">
         <h1 className="text-primary text-4xl md:text-5xl font-extrabold tracking-tight mb-8">
           Hola <span className="italic">{user.fullName}</span>
         </h1>

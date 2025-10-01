@@ -4,13 +4,14 @@ import Register from "@/pages/Register";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { ProtectedResolver } from "./Resolvers/ProtectedResolver";
 import { Home } from "@/pages/Home";
-import { Appointments } from "@/pages/Appointments";
+import { Reserve } from "@/pages/Reserve";
 import { RoleResolver } from "./Resolvers/RoleResolver";
 import { UserRoles } from "@/zustand/session/session.types";
 import { Profile } from "@/pages/Profile";
 import { Shifts } from "@/pages/Shifts";
-import { Vehicles } from "@/pages/Vehicles";
 import ChangePassword from "@/pages/ChangePassword";
+import { AppointmentsReserved } from "@/pages/AppointmentsReserved";
+import { Vehicles } from "@/pages/Vehicles";
 
 export const Routing = () => {
   return (
@@ -27,8 +28,9 @@ export const Routing = () => {
         <Route
           element={<RoleResolver role={UserRoles.USER} redirectPath="/login" />}
         >
-          <Route path="/appointments" element={<Appointments />} />
           <Route path="/vehicles" element={<Vehicles />} />
+          <Route path="/reserve" element={<Reserve />} />
+          <Route path="/appointments" element={<AppointmentsReserved />} />
         </Route>
         <Route
           element={
