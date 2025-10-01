@@ -17,6 +17,7 @@ import { WorkshopsMap } from "@/components/WorkshopsMap"
 import { toast } from "sonner"
 import { Calendar, MapPin, Wrench, Clock, CheckCircle } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useNavigate } from "react-router-dom"
 
 export const Reserve = () => {
   const [workshop, setWorkshop] = useState<string>("")
@@ -26,7 +27,8 @@ export const Reserve = () => {
   const [date, setDate] = useState<Date | undefined>(undefined)
   const [time, setTime] = useState<string>("")
   const [showMap, setShowMap] = useState<boolean>(false)
-
+  
+  const navigate = useNavigate()
   const availableHours = [
     {
       workshop: "example",
@@ -94,6 +96,7 @@ export const Reserve = () => {
       setSelectedServices([])
       setDate(undefined)
       setTime("")
+      navigate("/appointments")
     } catch {
       toast.error("No se pudo reservar el turno")
     }
