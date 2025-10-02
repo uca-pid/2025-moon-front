@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Container } from "@/components/Container"
 import { useEffect, useState } from "react"
-import type { Shift } from "@/types/appointments.types"
+import type { Shift, DateFilter } from "@/types/appointments.types"
 import { getNextAppointmentsOfMechanic } from "@/services/appointments"
 import { sortAppointments } from "@/helpers/sort-appointments"
 import { Calendar, Clock, User, Car, Wrench, Search, ChevronLeft, ChevronRight } from "lucide-react"
@@ -15,13 +16,14 @@ export const Shifts = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [selectedDateTab, setSelectedDateTab] = useState<DateFilter>("today")
   const itemsPerPage = 10
 
   useEffect(() => {
     const fetchShifts = async () => {
       setLoading(true)
       try {
-        const shifts = await getNextAppointmentsOfMechanic()
+        const shifts = await getNextAppointmentsOfMechanic(selectedDateTab)
         setShifts(
           shifts.map((shift: Shift) => ({
             ...shift,
@@ -35,7 +37,7 @@ export const Shifts = () => {
       }
     }
     fetchShifts()
-  }, [])
+  }, [selectedDateTab])
 
   const filteredShifts = shifts.filter((shift) => {
     const searchLower = searchTerm.toLowerCase()
@@ -56,7 +58,7 @@ export const Shifts = () => {
     <Container>
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold text-primary">Gestión de Turnos</h1>
+          <h1 className="text-3xl font-bold text-foreground">Gestión de Turnos</h1>
           <p className="text-muted-foreground">Administra y visualiza todos los turnos programados</p>
         </div>
         <Card>
@@ -81,8 +83,20 @@ export const Shifts = () => {
                 />
               </div>
             </div>
+            <Tabs
+              value={selectedDateTab}
+              onValueChange={(value: string) => {
+                setSelectedDateTab(value as DateFilter)
+                setCurrentPage(1)
+              }}
+            >
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="past">PASADOS</TabsTrigger>
+                <TabsTrigger value="today">HOY</TabsTrigger>
+                <TabsTrigger value="future">FUTUROS</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
-
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center py-12">
