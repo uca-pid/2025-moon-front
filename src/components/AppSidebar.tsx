@@ -1,3 +1,5 @@
+import type React from "react"
+
 import { Link, useLocation } from "react-router-dom"
 import {
   Sidebar,
@@ -17,7 +19,7 @@ import {
 import { useStore } from "@/zustand/store"
 import { UserRoles } from "@/zustand/session/session.types"
 import type { UserRole } from "@/zustand/session/session.types"
-import { Home, Calendar, Wrench, User, Moon, Sun } from "lucide-react"
+import { Home, Calendar, Wrench, User, Moon, Sun, Plus, Car, Hammer, Cog, Menu } from "lucide-react"
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
   const location = useLocation()
@@ -25,7 +27,9 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
   const themeMode = useStore((state) => state.themeMode)
   const toggleTheme = useStore((state) => state.toggleTheme)
 
-  const isDark = themeMode === 'dark' || (themeMode === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const isDark =
+    themeMode === "dark" ||
+    (themeMode === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
   const isRealRole = (role: UserRole): role is Exclude<UserRole, typeof UserRoles.NULL> => role !== UserRoles.NULL
 
@@ -50,10 +54,34 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       icon: <Calendar className="size-4" />,
     },
     {
+      path: "/vehicles",
+      label: "Mis vehiculos",
+      userRole: [UserRoles.USER],
+      icon: <Car className="size-4" />,
+    },
+    {
       path: "/shifts",
       label: "Turnos",
       userRole: [UserRoles.MECHANIC],
       icon: <Wrench className="size-4" />,
+    },
+    {
+      path: "/reserve",
+      label: "Reservar",
+      userRole: [UserRoles.USER],
+      icon: <Plus className="size-4" />,
+    },
+    {
+      path: "/spare-parts",
+      label: "Repuestos",
+      userRole: [UserRoles.MECHANIC],
+      icon: <Cog className="size-4" />,
+    },
+    {
+      path: "/services",
+      label: "Servicios",
+      userRole: [UserRoles.MECHANIC],
+      icon: <Hammer className="size-4" />,
     },
   ] as const
 
@@ -63,7 +91,9 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
         <SidebarHeader className="flex items-center justify-between p-2">
           <div className="flex items-center gap-2">
             <img src="/estaller-logo.png" alt="ESTALLER" className="h-8 w-8" />
-            <span className="text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:hidden">ESTALLER</span>
+            <span className="text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:hidden">
+              ESTALLER
+            </span>
           </div>
           <SidebarTrigger />
         </SidebarHeader>
@@ -94,7 +124,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
         <SidebarFooter>
           <SidebarMenu className="gap-2">
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Cambiar tema" onClick={toggleTheme}>
+              <SidebarMenuButton className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer" tooltip="Cambiar tema" onClick={toggleTheme}>
                 {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
                 <span>Cambiar tema</span>
               </SidebarMenuButton>
@@ -110,11 +140,23 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      {children ? <SidebarInset>{children}</SidebarInset> : null}
+      {children ? (
+        <SidebarInset>
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 lg:hidden text-foreground">
+            <SidebarTrigger className="flex items-center gap-2">
+              <Menu className="size-5" />
+              <span className="sr-only">Abrir menú</span>
+            </SidebarTrigger>
+            <div className="flex items-center gap-2">
+              <img src="/estaller-logo.png" alt="ESTALLER" className="h-6 w-6" />
+              <span className="text-sm font-semibold">ESTALLER</span>
+            </div>
+          </header>
+          {children}
+        </SidebarInset>
+      ) : null}
     </SidebarProvider>
   )
 }
 
 export default AppSidebar
-
-
