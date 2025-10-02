@@ -25,3 +25,5 @@ export interface Shift {
   user: User
   services: Service[]
 }
+
+export type DateFilter = 'past' | 'today' | 'future'
