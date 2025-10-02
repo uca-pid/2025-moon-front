@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Check, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Hash, Package, Box, Trash, Plus } from "lucide-react"
 import { CustomPagination } from "@/components/CustomPagination"
@@ -16,11 +15,11 @@ import { ServiceDialog } from "./modal"
 import type { SparePart } from "@/types/spare-part.types"
 import { Badge } from "@/components/ui/badge"
 import { getServiceStatus, ServiceStatusEnum } from "@/helpers/service-status"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
   
 export const Services = () => {
-  const [orderBy, setOrderBy] = useState("id")
-  const [orderDir, setOrderDir] = useState("asc")
   const [isOpen, setIsOpen] = useState(false)
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
   const [editingService, setEditingService] = useState<CreateService | null>(null)
   const [pagination, setPagination] = useState<PaginatedQueryDto>({
     page: 1,
@@ -164,7 +163,7 @@ export const Services = () => {
                   className="pl-10"
                 />
               </div>
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Ordenar por</span>
                 <Select
                   value={orderBy}
@@ -195,7 +194,7 @@ export const Services = () => {
                     <SelectItem value="desc">DESC</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
             </div>
           </CardHeader>
 
@@ -270,7 +269,8 @@ export const Services = () => {
                               size="icon"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                deleteService(service.id).then(() => refetch())
+                                setIsAlertDialogOpen(true)
+                                setEditingService(service)
                               }}
                             >
                               <Trash size={20} className="text-destructive" />
@@ -315,6 +315,23 @@ export const Services = () => {
             )}
           </CardContent>
         </Card>
+        <AlertDialog
+          open={isAlertDialogOpen}
+          onOpenChange={setIsAlertDialogOpen}
+        >
+          <AlertDialogContent className="text-foreground">
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar servicio?</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription>
+              Estás por eliminar el servicio {editingService?.name}. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteService(editingService!.id!).then(() => refetch())}>Eliminar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Container>
   )

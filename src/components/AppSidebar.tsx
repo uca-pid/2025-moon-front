@@ -124,7 +124,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
         <SidebarFooter>
           <SidebarMenu className="gap-2">
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="Cambiar tema" onClick={toggleTheme}>
+              <SidebarMenuButton className="hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer" tooltip="Cambiar tema" onClick={toggleTheme}>
                 {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
                 <span>Cambiar tema</span>
               </SidebarMenuButton>

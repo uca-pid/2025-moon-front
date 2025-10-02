@@ -1,11 +1,13 @@
 import type { Service } from './services.types'
 import type { User } from './users.types'
+import type { Vehicle } from './vehicles.types'
 
 export interface CreateAppointment {
   date: string
   time: string
   serviceIds: number[]
   workshopId: number
+  vehicleId: number
 }
 
 export interface Appointment {
@@ -15,6 +17,7 @@ export interface Appointment {
   time: string
   services: Service[]
   workshop: User
+  vehicle: Vehicle
 }
 
 export interface Shift {
@@ -24,6 +27,7 @@ export interface Shift {
   time: string
   user: User
   services: Service[]
+  vehicle: Vehicle
 }
 
 export type DateFilter = 'past' | 'today' | 'future'

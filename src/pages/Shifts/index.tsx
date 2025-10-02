@@ -149,11 +149,11 @@ export const Shifts = () => {
                           <TableCell className="font-medium">{shift.date}</TableCell>
                           <TableCell>{shift.time}</TableCell>
                           <TableCell>{shift.type === "shift" && shift.user.fullName}</TableCell>
-                          <TableCell className="text-muted-foreground">AG 192 QZ</TableCell>
+                          <TableCell>{shift.vehicle.licensePlate}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
                               {shift.services.map((service) => (
-                                <Badge key={service.id} variant="secondary" className="text-xs">
+                                <Badge key={service.id} variant="warning" className="text-xs">
                                   {service.name}
                                 </Badge>
                               ))}

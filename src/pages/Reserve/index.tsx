@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { WorkshopsMap } from "@/components/WorkshopsMap";
 import { toast } from "sonner";
-import { Calendar, MapPin, Wrench, Clock, CheckCircle } from "lucide-react";
+import { Calendar, MapPin, Wrench, Clock, CheckCircle, Car } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -36,16 +36,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
+import { getVehiclesOfUser } from "@/services/vehicles";
+import type { Vehicle } from "@/types/vehicles.types";
 
 export const Reserve = () => {
   const [workshop, setWorkshop] = useState<string>("");
   const [workshops, setWorkshops] = useState<User[]>([]);
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<string>("");
   const [services, setServices] = useState<Service[]>([]);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<string>("");
   const [showMap, setShowMap] = useState<boolean>(false);
-
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  
   const navigate = useNavigate();
   const availableHours = [
     {
@@ -75,14 +79,16 @@ export const Reserve = () => {
   ];
 
   useEffect(() => {
-    const fetchWorkshops = async () => {
+    const fetchData = async () => {
       const workshops = await getAllWorkshops();
       setWorkshops(workshops);
+      const vehicles = await getVehiclesOfUser();
+      setVehicles(vehicles);
     };
     try {
-      fetchWorkshops();
-    } catch (error) {
-      console.error(error);
+      fetchData();
+    } catch {
+      toast.error("Error al cargar los talleres y vehículos");
     }
   }, []);
 
@@ -95,8 +101,8 @@ export const Reserve = () => {
 
     try {
       fetchServices();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      toast.error("Error al cargar los servicios");
     }
   }, [workshop]);
 
@@ -106,6 +112,7 @@ export const Reserve = () => {
       time: time,
       serviceIds: selectedServices.map((s) => Number(s)),
       workshopId: Number(workshop),
+      vehicleId: Number(selectedVehicle),
     };
     try {
       await createAppointment(appointment);
@@ -125,7 +132,8 @@ export const Reserve = () => {
       !selectedServices.length ||
       !date ||
       !time ||
-      selectedServices.length === 0
+      selectedServices.length === 0 ||
+      selectedVehicle === ""
     );
   };
 
@@ -164,6 +172,31 @@ export const Reserve = () => {
                 time={time}
                 availableHours={availableHours}
               />
+            </div>
+
+            <div className="flex flex-col gap-3 w-full lg:w-[50%]">
+              <Label
+                htmlFor="service"
+                className="px-1 text-lg text-foreground flex items-center gap-2"
+              >
+                <Car className="h-5 w-5" />
+                Vehículos
+              </Label>
+              <Select
+                value={selectedVehicle}
+                onValueChange={(value) => setSelectedVehicle(value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Selecciona un vehículo" />
+                </SelectTrigger>
+                <SelectContent className="w-full">
+                  {vehicles.map((vehicle) => (
+                    <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                      PATENTE: {vehicle.licensePlate} - MODELO: {vehicle.model}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex flex-col gap-3 w-full lg:w-[50%]">
@@ -284,6 +317,14 @@ export const Reserve = () => {
                         <Clock className="h-4 w-4 mt-0.5 text-muted-foreground" />
                         <div>
                           <span className="font-medium">Horario:</span> {time}
+                        </div>
+                      </li>
+                    )}
+                    {selectedVehicle && (
+                      <li className="flex items-start gap-2">
+                        <Car className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                        <div>
+                          <span className="font-medium">Vehículo:</span> {vehicles.find((v) => v.id.toString() === selectedVehicle)?.licensePlate}
                         </div>
                       </li>
                     )}

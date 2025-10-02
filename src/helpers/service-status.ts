@@ -14,7 +14,7 @@ export const getServiceStatus = (service: Service) => {
   const hasEnoughStockForAll = (service.spareParts ?? []).every((sp) => {
     const stock = Number(sp?.sparePart?.stock ?? 0)
     const quantity = Number(sp?.quantity ?? 0)
-    return stock > quantity
+    return stock >= quantity
   })
 
   return hasEnoughStockForAll
