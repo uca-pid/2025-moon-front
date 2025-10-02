@@ -600,7 +600,12 @@ export const Vehicles = () => {
                           Cancelar
                         </Button>
                       </DialogClose>
-                      <Button type="submit">Agregar Vehículo</Button>
+                      <Button
+                        type="submit"
+                        disabled={!licensePlate || !model || !year}
+                      >
+                        Agregar Vehículo
+                      </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>

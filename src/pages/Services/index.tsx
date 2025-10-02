@@ -1,7 +1,7 @@
 import { Container } from "@/components/Container"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Search } from "lucide-react"
+import { Check, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -14,6 +14,8 @@ import type { PaginatedQueryDto, PaginatedResponseDto } from "@/types/paginated.
 import { createService, deleteService, getServices, updateService } from "@/services/services"
 import { ServiceDialog } from "./modal"
 import type { SparePart } from "@/types/spare-part.types"
+import { Badge } from "@/components/ui/badge"
+import { getServiceStatus, ServiceStatusEnum } from "@/helpers/service-status"
   
 export const Services = () => {
   const [orderBy, setOrderBy] = useState("id")
@@ -43,9 +45,9 @@ export const Services = () => {
         let quantity = Number(spRec.quantity)
         if (!quantity || quantity < 1) quantity = 1
         if (sparePartId == null || !Number.isFinite(sparePartId)) return null
-        return { sparePartId, quantity }
+        return { sparePartId, quantity, serviceId: service.id, sparePart: sp }
       })
-      .filter((v): v is { sparePartId: number; quantity: number } => v !== null)
+      .filter((v): v is { sparePartId: number; quantity: number; serviceId: number; sparePart: SparePart } => v !== null)
 
     return {
       id: typeof service.id !== 'undefined' ? Number(service.id) : undefined,
@@ -229,6 +231,12 @@ export const Services = () => {
                             Precio
                           </div>
                         </TableHead>
+                        <TableHead>
+                          <div className="flex items-center gap-2">
+                            <Check className="h-4 w-4" />
+                            Estado
+                          </div>
+                        </TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -245,9 +253,16 @@ export const Services = () => {
                           <TableCell className="font-medium">{service.id}</TableCell>
                           <TableCell>{service.name}</TableCell>
                           <TableCell>
-                            <span className={service.price && service.price < 10 ? "text-destructive font-semibold" : ""}>
+                            <span>
                               {service.price}
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={getServiceStatus(service) === ServiceStatusEnum.ACTIVO ? "success" : getServiceStatus(service) === ServiceStatusEnum.FALTA_STOCK ? "warning" : "destructive"}>
+                              {
+                                getServiceStatus(service)
+                              }
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <Button

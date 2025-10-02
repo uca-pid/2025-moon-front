@@ -66,7 +66,11 @@ export const SparePartDialog = ({
           <Button variant='secondary' onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button type='submit' onClick={() => onSave()}>
+          <Button
+            type='submit'
+            onClick={() => onSave()}
+            disabled={sparePart?.name === ""}
+          >
             Confirmar
           </Button>
         </DialogFooter>
