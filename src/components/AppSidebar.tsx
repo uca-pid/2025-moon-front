@@ -1,4 +1,6 @@
-import { Link, useLocation } from "react-router-dom";
+import type React from "react"
+
+import { Link, useLocation } from "react-router-dom"
 import {
   Sidebar,
   SidebarContent,
@@ -13,59 +15,43 @@ import {
   SidebarProvider,
   SidebarSeparator,
   SidebarTrigger,
-} from "@/components/ui/sidebar";
-import { useStore } from "@/zustand/store";
-import { UserRoles } from "@/zustand/session/session.types";
-import type { UserRole } from "@/zustand/session/session.types";
-import {
-  Home,
-  Calendar,
-  Wrench,
-  User,
-  Moon,
-  Sun,
-  Plus,
-  Car,
-  Hammer,
-  Cog,
-} from "lucide-react";
+} from "@/components/ui/sidebar"
+import { useStore } from "@/zustand/store"
+import { UserRoles } from "@/zustand/session/session.types"
+import type { UserRole } from "@/zustand/session/session.types"
+import { Home, Calendar, Wrench, User, Moon, Sun, Plus, Car, Hammer, Cog, Menu } from "lucide-react"
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
-  const location = useLocation();
-  const user = useStore((state) => state.user);
-  const themeMode = useStore((state) => state.themeMode);
-  const toggleTheme = useStore((state) => state.toggleTheme);
+  const location = useLocation()
+  const user = useStore((state) => state.user)
+  const themeMode = useStore((state) => state.themeMode)
+  const toggleTheme = useStore((state) => state.toggleTheme)
 
   const isDark =
     themeMode === "dark" ||
-    (themeMode === "system" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches);
+    (themeMode === "system" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
-  const isRealRole = (
-    role: UserRole
-  ): role is Exclude<UserRole, typeof UserRoles.NULL> =>
-    role !== UserRoles.NULL;
+  const isRealRole = (role: UserRole): role is Exclude<UserRole, typeof UserRoles.NULL> => role !== UserRoles.NULL
 
   type NavItem = {
-    path: string;
-    label: string;
-    userRole: UserRole[];
-    icon: React.ReactNode;
-  };
+    path: string
+    label: string
+    userRole: UserRole[]
+    icon: React.ReactNode
+  }
 
   const navPaths: NavItem[] = [
     {
-      path: '/home',
-      label: 'Inicio',
+      path: "/home",
+      label: "Inicio",
       userRole: [UserRoles.USER, UserRoles.MECHANIC],
-      icon: <Home className='size-4' />,
+      icon: <Home className="size-4" />,
     },
     {
-      path: '/appointments',
-      label: 'Mis turnos',
+      path: "/appointments",
+      label: "Mis turnos",
       userRole: [UserRoles.USER],
-      icon: <Calendar className='size-4' />,
+      icon: <Calendar className="size-4" />,
     },
     {
       path: "/vehicles",
@@ -77,27 +63,27 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       path: "/shifts",
       label: "Turnos",
       userRole: [UserRoles.MECHANIC],
-      icon: <Wrench className='size-4' />,
+      icon: <Wrench className="size-4" />,
     },
     {
-      path: '/reserve',
-      label: 'Reservar',
+      path: "/reserve",
+      label: "Reservar",
       userRole: [UserRoles.USER],
-      icon: <Plus className='size-4' />,
+      icon: <Plus className="size-4" />,
     },
     {
-      path: '/spare-parts',
-      label: 'Repuestos',
+      path: "/spare-parts",
+      label: "Repuestos",
       userRole: [UserRoles.MECHANIC],
-      icon: <Cog className='size-4' />,
+      icon: <Cog className="size-4" />,
     },
     {
-      path: '/services',
-      label: 'Servicios',
+      path: "/services",
+      label: "Servicios",
       userRole: [UserRoles.MECHANIC],
-      icon: <Hammer className='size-4' />,
+      icon: <Hammer className="size-4" />,
     },
-  ] as const;
+  ] as const
 
   return (
     <SidebarProvider>
@@ -115,50 +101,36 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu className='gap-2'>
+              <SidebarMenu className="gap-2">
                 {navPaths.map((nav) => {
-                  const allowed =
-                    isRealRole(user.userRole) &&
-                    nav.userRole.includes(user.userRole);
-                  if (!allowed) return null;
-                  const isActive = location.pathname === nav.path;
+                  const allowed = isRealRole(user.userRole) && nav.userRole.includes(user.userRole)
+                  if (!allowed) return null
+                  const isActive = location.pathname === nav.path
                   return (
                     <SidebarMenuItem key={nav.path}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={isActive}
-                        tooltip={nav.label}
-                      >
+                      <SidebarMenuButton asChild isActive={isActive} tooltip={nav.label}>
                         <Link to={nav.path} className="flex items-center gap-2">
                           {nav.icon}
                           <span>{nav.label}</span>
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  );
+                  )
                 })}
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter>
-          <SidebarMenu className='gap-2'>
+          <SidebarMenu className="gap-2">
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="Cambiar tema" onClick={toggleTheme}>
-                {isDark ? (
-                  <Sun className="size-4" />
-                ) : (
-                  <Moon className="size-4" />
-                )}
+                {isDark ? <Sun className="size-4" /> : <Moon className="size-4" />}
                 <span>Cambiar tema</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                isActive={location.pathname === "/profile"}
-                tooltip="Perfil"
-              >
+              <SidebarMenuButton asChild isActive={location.pathname === "/profile"} tooltip="Perfil">
                 <Link to="/profile" className="flex items-center gap-2">
                   <User className="size-4" />
                   <span>Perfil</span>
@@ -168,9 +140,23 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>
-      {children ? <SidebarInset>{children}</SidebarInset> : null}
+      {children ? (
+        <SidebarInset>
+          <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 lg:hidden text-foreground">
+            <SidebarTrigger className="flex items-center gap-2">
+              <Menu className="size-5" />
+              <span className="sr-only">Abrir menú</span>
+            </SidebarTrigger>
+            <div className="flex items-center gap-2">
+              <img src="/estaller-logo.png" alt="ESTALLER" className="h-6 w-6" />
+              <span className="text-sm font-semibold">ESTALLER</span>
+            </div>
+          </header>
+          {children}
+        </SidebarInset>
+      ) : null}
     </SidebarProvider>
-  );
-};
+  )
+}
 
 export default AppSidebar

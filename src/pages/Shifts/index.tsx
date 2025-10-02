@@ -58,7 +58,7 @@ export const Shifts = () => {
     <Container>
       <div className="flex flex-col gap-6 p-6">
         <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold text-foreground">Gestión de Turnos</h1>
+          <h1 className="text-3xl font-bold text-primary">Gestión de Turnos</h1>
           <p className="text-muted-foreground">Administra y visualiza todos los turnos programados</p>
         </div>
         <Card>
