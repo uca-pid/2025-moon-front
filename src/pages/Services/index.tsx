@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from "react"
 import type { CreateService, Service } from "@/types/services.types"
 import { useQuery } from "react-query"
 import type { PaginatedQueryDto, PaginatedResponseDto } from "@/types/paginated.types"
-import { createService, getServices, updateService } from "@/services/services"
+import { createService, deleteService, getServices, updateService } from "@/services/services"
 import { ServiceDialog } from "./modal"
 import type { SparePart } from "@/types/spare-part.types"
   
@@ -255,6 +255,7 @@ export const Services = () => {
                               size="icon"
                               onClick={(e) => {
                                 e.stopPropagation()
+                                deleteService(service.id).then(() => refetch())
                               }}
                             >
                               <Trash size={20} className="text-destructive" />
