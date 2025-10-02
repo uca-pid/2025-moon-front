@@ -87,7 +87,6 @@ export const Vehicles = () => {
   const [model, setModel] = useState("");
   const [year, setYear] = useState(2025);
   const [km, setKm] = useState(0);
-  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [open, setOpen] = useState(false);
   const [openChange, setOpenChange] = useState(false);
   const [refreshVehiclesTick, setRefreshVehiclesTick] = useState<number>(0);
@@ -141,10 +140,8 @@ export const Vehicles = () => {
     try {
       await deleteVehicle(id);
       setRefreshVehiclesTick((prev) => prev + 1);
-      setStatus("success");
       toast.success("Vehículo eliminado correctamente");
     } catch {
-      setStatus("error");
       toast.error("Error al eliminar el vehículo");
     }
   };
@@ -175,11 +172,9 @@ export const Vehicles = () => {
     try {
       await updateVehicle(id, vehicle);
       setRefreshVehiclesTick((prev) => prev + 1);
-      setStatus("success");
       toast.success("Vehículo actualizado correctamente");
       setOpenChange(false);
     } catch {
-      setStatus("error");
       toast.error("Error al actualizar el vehículo");
     }
   };
@@ -202,7 +197,6 @@ export const Vehicles = () => {
     try {
       await createVehicle(vehicle);
       setRefreshVehiclesTick((prev) => prev + 1);
-      setStatus("success");
       toast.success("Vehículo agregado correctamente");
       setOpen(false);
       setKm(0);
@@ -210,7 +204,6 @@ export const Vehicles = () => {
       setModel("");
       setYear(2025);
     } catch {
-      setStatus("error");
       toast.error("Error al agregar el vehículo");
     }
   };
@@ -607,7 +600,12 @@ export const Vehicles = () => {
                           Cancelar
                         </Button>
                       </DialogClose>
-                      <Button type="submit">Agregar Vehículo</Button>
+                      <Button
+                        type="submit"
+                        disabled={!licensePlate || !model || !year}
+                      >
+                        Agregar Vehículo
+                      </Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>
