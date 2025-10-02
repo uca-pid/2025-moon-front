@@ -174,6 +174,7 @@ export const ServiceDialog = ({
                     selected={selectedSparePartIds}
                     setSelected={onChangeSelectedSpareParts}
                     placeholder="Selecciona repuestos..."
+                    hasInput
                   />
                   {normalizedSpareParts.length > 0 && (
                     <div className="mt-3 space-y-2">

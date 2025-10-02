@@ -15,9 +15,14 @@ export interface SparePartService {
   sparePart: SparePart
 }
 
+export interface CreateSparePartService {
+  sparePartId: number
+  quantity: number
+}
+
 export interface CreateService {
   id?: number
   name: string
   price: number
-  spareParts: SparePartService[]
+  spareParts: CreateSparePartService[]
 }

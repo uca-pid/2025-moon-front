@@ -1,5 +1,5 @@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
-import { Command, CommandGroup, CommandItem } from "@/components/ui/command"
+import { Command, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
 import { Button } from "@/components/ui/button"
 import { Check, ChevronDownIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -9,9 +9,10 @@ type MultiSelectProps = {
   selected: string[]
   setSelected: (values: string[]) => void
   placeholder?: string
+  hasInput?: boolean
 }
 
-export const MultiSelect = ({ options, selected, setSelected, placeholder }: MultiSelectProps) => {
+export const MultiSelect = ({ options, selected, setSelected, placeholder, hasInput }: MultiSelectProps) => {
   const toggleOption = (value: string) => {
     if (selected.includes(value)) {
       setSelected(selected.filter((v) => v !== value))
@@ -33,9 +34,12 @@ export const MultiSelect = ({ options, selected, setSelected, placeholder }: Mul
             <ChevronDownIcon className="size-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
-        <Command>
-          <CommandGroup className="max-h-[200px] overflow-y-auto">
+      <PopoverContent className="p-0 w-full">
+        <Command className="w-full">
+          {hasInput && (
+            <CommandInput placeholder="Buscar..." className="w-full" />
+          )}
+          <CommandGroup className="max-h-[200px] w-full overflow-y-auto">
             {options.map((option) => (
               <CommandItem
                 key={option.value}
