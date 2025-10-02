@@ -182,21 +182,29 @@ export const Reserve = () => {
                 <Car className="h-5 w-5" />
                 Vehículos
               </Label>
-              <Select
-                value={selectedVehicle}
-                onValueChange={(value) => setSelectedVehicle(value)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Selecciona un vehículo" />
-                </SelectTrigger>
-                <SelectContent className="w-full">
-                  {vehicles.map((vehicle) => (
-                    <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
-                      PATENTE: {vehicle.licensePlate} - MODELO: {vehicle.model}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {
+                vehicles.length > 0 ? (
+                <Select
+                  value={selectedVehicle}
+                  onValueChange={(value) => setSelectedVehicle(value)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecciona un vehículo" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id.toString()}>
+                        PATENTE: {vehicle.licensePlate} - MODELO: {vehicle.model}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">
+                    No tienes ningún vehículo registrado.
+                  </p>
+                )
+              }
             </div>
 
             <div className="flex flex-col gap-3 w-full lg:w-[50%]">
