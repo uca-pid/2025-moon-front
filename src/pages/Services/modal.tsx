@@ -257,7 +257,7 @@ export const ServiceDialog = ({
           </Button>
           <Button
             type="submit"
-            disabled={sparePartOptions.length === 0}
+            disabled={sparePartOptions.length === 0 || service?.name === "" || service?.price === 0}
             onClick={() => onSave()}
           >
             Confirmar
