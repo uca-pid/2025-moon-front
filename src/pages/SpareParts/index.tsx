@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CustomPagination } from "@/components/CustomPagination"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 
 export const SpareParts = () => {
   const onSave = async () => {
@@ -28,6 +29,7 @@ export const SpareParts = () => {
     refetch()
   }
   const [isOpen, setIsOpen] = useState(false)
+  const [isAlertDialogOpen, setIsAlertDialogOpen] = useState(false)
   const [editingSparePart, setEditingSparePart] = useState<SparePartData | null>(null)
   const [pagination, setPagination] = useState<PaginatedQueryDto>({
     page: 1,
@@ -226,7 +228,8 @@ export const SpareParts = () => {
                               size="icon"
                               onClick={(e) => {
                                 e.stopPropagation()
-                                remove(sparePart.id!).then(() => refetch())
+                                setIsAlertDialogOpen(true)
+                                setEditingSparePart(sparePart)
                               }}
                             >
                               <Trash size={20} className="text-destructive" />
@@ -271,6 +274,23 @@ export const SpareParts = () => {
             )}
           </CardContent>
         </Card>
+        <AlertDialog
+          open={isAlertDialogOpen}
+          onOpenChange={setIsAlertDialogOpen}
+        >
+          <AlertDialogContent className="text-foreground">
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar repuesto?</AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogDescription>
+              Estás por eliminar el repuesto {editingSparePart?.name} con stock {editingSparePart?.stock}. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={() => remove(editingSparePart!.id!).then(() => refetch())}>Eliminar</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Container>
   )

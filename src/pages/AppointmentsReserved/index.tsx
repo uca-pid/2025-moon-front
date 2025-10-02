@@ -5,7 +5,7 @@ import { sortAppointments } from "@/helpers/sort-appointments"
 import type { Appointment } from "@/types/appointments.types"
 import { useEffect, useState } from "react"
 import { getNextAppointmentsOfUser } from "@/services/appointments"
-import { CheckCircle, Clock, Wrench } from "lucide-react"
+import { Car, CheckCircle, Clock, Wrench } from "lucide-react"
 import { Calendar } from "lucide-react"
 
 export const AppointmentsReserved = () => {
@@ -46,6 +46,14 @@ export const AppointmentsReserved = () => {
                         <div className="flex items-center gap-2 text-foreground">
                           <Clock className="h-4 w-4 text-muted-foreground" />
                           <span className="font-medium">{app.time}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <Car className="h-4 w-4 text-muted-foreground mt-0.5" />
+                        <div>
+                          <p className="text-sm text-muted-foreground">Vehículo</p>
+                          <p className="font-medium text-foreground">{(app as Appointment).vehicle?.licensePlate}</p>
                         </div>
                       </div>
 
