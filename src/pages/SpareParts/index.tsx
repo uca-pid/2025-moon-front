@@ -218,7 +218,7 @@ export const SpareParts = () => {
                           <TableCell className="font-medium">{sparePart.id}</TableCell>
                           <TableCell>{sparePart.name}</TableCell>
                           <TableCell>
-                            <span className={sparePart.stock && sparePart.stock < 10 ? "text-destructive font-semibold" : ""}>
+                            <span className={sparePart.stock ? sparePart.stock < 10 ? "text-destructive font-semibold" : "" : "text-destructive font-semibold"}>
                               {sparePart.stock}
                             </span>
                           </TableCell>

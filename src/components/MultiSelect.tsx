@@ -1,8 +1,9 @@
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
-import { Command, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Command, CommandGroup, CommandInput, CommandItem, CommandEmpty } from "@/components/ui/command"
 import { Button } from "@/components/ui/button"
-import { Check, ChevronDownIcon } from "lucide-react"
+import { Check, ChevronDownIcon, Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 type MultiSelectProps = {
   options: { label: string; value: string }[]
@@ -10,9 +11,11 @@ type MultiSelectProps = {
   setSelected: (values: string[]) => void
   placeholder?: string
   hasInput?: boolean
+  onCreate?: (value: string) => void
 }
 
-export const MultiSelect = ({ options, selected, setSelected, placeholder, hasInput }: MultiSelectProps) => {
+export const MultiSelect = ({ options, selected, setSelected, placeholder, hasInput, onCreate }: MultiSelectProps) => {
+  const [search, setSearch] = useState("")
   const toggleOption = (value: string) => {
     if (selected.includes(value)) {
       setSelected(selected.filter((v) => v !== value))
@@ -20,6 +23,9 @@ export const MultiSelect = ({ options, selected, setSelected, placeholder, hasIn
       setSelected([...selected, value])
     }
   }
+
+  const normalizedSearch = search.trim().toLowerCase()
+  const hasExactMatch = normalizedSearch.length > 0 && options.some((o) => o.label.trim().toLowerCase() === normalizedSearch)
 
   return (
     <Popover>
@@ -37,7 +43,12 @@ export const MultiSelect = ({ options, selected, setSelected, placeholder, hasIn
       <PopoverContent className="p-0 w-full">
         <Command className="w-full">
           {hasInput && (
-            <CommandInput placeholder="Buscar..." className="w-full" />
+            <CommandInput
+              placeholder="Buscar..."
+              className="w-full"
+              value={search}
+              onValueChange={setSearch}
+            />
           )}
           <CommandGroup className="max-h-[200px] w-full overflow-y-auto">
             {options.map((option) => (
@@ -56,6 +67,20 @@ export const MultiSelect = ({ options, selected, setSelected, placeholder, hasIn
               </CommandItem>
             ))}
           </CommandGroup>
+          <CommandEmpty>
+            <span>No hay resultados</span>
+          </CommandEmpty>
+          {onCreate && normalizedSearch.length > 0 && !hasExactMatch && (
+            <div className="border-t p-1">
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => onCreate?.(search.trim())}
+              >
+                <Plus className="mr-2" /> Crear "{search.trim()}"
+              </Button>
+            </div>
+          )}
         </Command>
       </PopoverContent>
     </Popover>
