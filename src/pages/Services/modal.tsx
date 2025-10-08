@@ -1,4 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "react-query";
+import { create as createSparePart } from "@/services/spare-parts";
+import type { SparePart, SparePartData } from "@/types/spare-part.types";
 import {
   Dialog,
   DialogContent,
@@ -9,11 +14,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/MultiSelect";
-import { useMemo } from "react";
 import { useQuery } from "react-query";
 import { getSpareParts } from "@/services/spare-parts";
 import type { PaginatedResponseDto } from "@/types/paginated.types";
-import type { SparePart } from "@/types/spare-part.types";
 import type { CreateService, Service } from "@/types/services.types";
 
 export interface ServiceDialogProps {
@@ -32,10 +35,12 @@ export const ServiceDialog = ({
   onChangeService,
   onSave,
 }: ServiceDialogProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isCreating = !service?.id;
   const title = isCreating
     ? "Creando servicio"
     : `Editando servicio #${service?.id}`;
+  const queryClient = useQueryClient();
   const { data: sparePartsResponse } = useQuery<
     PaginatedResponseDto<SparePart>
   >(
@@ -122,13 +127,57 @@ export const ServiceDialog = ({
     const current =
       service ?? ({ name: "", price: 0, spareParts: [] } as CreateService);
     const nextSpareParts = normalizedSpareParts.map((sp) =>
-      Number(sp.sparePartId) === sparePartId ? { ...sp, quantity } : sp
+      Number(sp.sparePartId) === sparePartId ? { ...sp, quantity: Math.max(1, quantity) } : sp
     );
     onChangeService?.({
       ...current,
       spareParts: nextSpareParts,
     });
   };
+
+  const createSparePartMutation = useMutation<SparePart, unknown, string>(
+    async (name: string) => {
+      const payload: SparePartData = { name: name.trim(), stock: 0 };
+      return await createSparePart(payload);
+    },
+    {
+      onSuccess: async (created) => {
+        toast.success("Repuesto creado correctamente");
+        if (created?.id != null) {
+          const current =
+            service ?? ({ name: "", price: 0, spareParts: [] } as CreateService);
+          const exists = normalizedSpareParts.some((sp) => sp.sparePartId === created.id);
+          const nextSpareParts = exists
+            ? normalizedSpareParts
+            : [...normalizedSpareParts, { sparePartId: created.id, quantity: 1 }];
+          onChangeService?.({
+            ...current,
+            spareParts: nextSpareParts,
+          });
+        }
+        await queryClient.invalidateQueries(["spare-parts", "for-service-modal"]);
+      },
+      onError: (error: unknown) => {
+        const message = (error as Error)?.message ?? "Ocurrió un error";
+        toast.error(message);
+      },
+    }
+  );
+  const handleSubmit = async () => {
+    if (isSubmitting) return;
+    try {
+      setIsSubmitting(true);
+      await Promise.resolve(onSave());
+      toast.success("Servicio guardado correctamente");
+      onOpenChange(false);
+    } catch (error) {
+      const message = (error as Error)?.message ?? "Ocurrió un error";
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="text-foreground">
@@ -154,11 +203,12 @@ export const ServiceDialog = ({
             <Input
               id="price"
               type="number"
+              min={0}
               value={service?.price}
               onChange={(e) =>
                 onChangeService?.({
                   ...service,
-                  price: Number(e.target.value),
+                  price: Math.max(0, Number(e.target.value)),
                 } as CreateService)
               }
             />
@@ -175,6 +225,7 @@ export const ServiceDialog = ({
                     setSelected={onChangeSelectedSpareParts}
                     placeholder="Selecciona repuestos..."
                     hasInput
+                    onCreate={(value) => createSparePartMutation.mutate(value)}
                   />
                   {normalizedSpareParts.length > 0 && (
                     <div className="mt-3 space-y-2">
@@ -253,15 +304,20 @@ export const ServiceDialog = ({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+          <Button variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancelar
           </Button>
           <Button
             type="submit"
-            disabled={sparePartOptions.length === 0 || service?.name === "" || service?.price === 0}
-            onClick={() => onSave()}
+            disabled={
+              isSubmitting ||
+              sparePartOptions.length === 0 ||
+              service?.name === "" ||
+              service?.price === 0
+            }
+            onClick={handleSubmit}
           >
-            Confirmar
+            {isSubmitting ? "Guardando..." : "Confirmar"}
           </Button>
         </DialogFooter>
       </DialogContent>

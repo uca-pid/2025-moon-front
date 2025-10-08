@@ -1,4 +1,6 @@
 import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import {
   Dialog,
   DialogContent,
@@ -26,10 +28,25 @@ export const SparePartDialog = ({
   onChangeSparePart,
   onSave,
 }: SparePartDialogProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const isCreating = !sparePart?.id
   const title = isCreating
     ? 'Creando repuesto'
     : `Editando respuesto #${sparePart?.id}`
+  const handleSubmit = async () => {
+    if (isSubmitting) return
+    try {
+      setIsSubmitting(true)
+      await Promise.resolve(onSave())
+      toast.success('Repuesto guardado correctamente')
+      onOpenChange(false)
+    } catch (error) {
+      const message = (error as Error)?.message ?? 'Ocurrió un error'
+      toast.error(message)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className='text-foreground'>
@@ -52,26 +69,27 @@ export const SparePartDialog = ({
             <Input
               id='stock'
               type='number'
+              min={0}
               value={sparePart?.stock}
               onChange={(e) =>
                 onChangeSparePart?.({
                   ...sparePart,
-                  stock: Number(e.target.value),
+                  stock: Math.max(0, Number(e.target.value)),
                 })
               }
             />
           </div>
         </div>
         <DialogFooter>
-          <Button variant='secondary' onClick={() => onOpenChange(false)}>
+          <Button variant='secondary' onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancelar
           </Button>
           <Button
             type='submit'
-            onClick={() => onSave()}
-            disabled={sparePart?.name === ""}
+            onClick={handleSubmit}
+            disabled={isSubmitting || sparePart?.name === ""}
           >
-            Confirmar
+            {isSubmitting ? 'Guardando...' : 'Confirmar'}
           </Button>
         </DialogFooter>
       </DialogContent>
