@@ -33,6 +33,8 @@ import {
   Menu,
   Bell,
   BarChart,
+  Check,
+  Mail,
 } from 'lucide-react'
 import {
   getNotifications,
@@ -42,6 +44,7 @@ import { useQuery } from 'react-query'
 import type { Notification } from '@/types/notifications.types'
 import { useState } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
+import { Button } from './ui/button'
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
   const [openNotifications, setOpenNotifications] = useState(false)
@@ -132,6 +135,14 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
     },
   ] as const
 
+  const handleMarkAllAsRead = async () => {
+    const unread = notifications.filter((n: Notification) => !n.isRead)
+    for (const n of unread) {
+      await markNotificationAsRead(n.id)
+    }
+    refetch()
+  }
+
   return (
     <SidebarProvider>
       <Sidebar collapsible='icon' className='border-r'>
@@ -182,7 +193,14 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
                 tooltip='Notificaciones'
                 onClick={() => setOpenNotifications(!openNotifications)}
               >
-                <Bell className='size-4' />
+                <div className='relative'>
+                  <Bell className='size-4' />
+                  {notifications.length > 0 && (
+                    <span className='absolute -top-2 -right-2 bg-destructive text-white text-xs rounded-full px-1 py-0.5 min-w-[14px] text-center'>
+                      {notifications.length}
+                    </span>
+                  )}
+                </div>
                 <span>Notificaciones</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -236,27 +254,76 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       ) : null}
       <Dialog open={openNotifications} onOpenChange={setOpenNotifications}>
         <DialogContent className='max-w-md text-foreground'>
-          <DialogHeader>
+          <DialogHeader className='flex flex-row items-center justify-between p-3'>
             <DialogTitle>Notificaciones</DialogTitle>
+            {notifications.some((n: Notification) => !n.isRead) && (
+              <Button
+                variant='outline'
+                size='sm'
+                className='text-xs'
+                onClick={handleMarkAllAsRead}
+              >
+                <Check className='size-4 mr-1' />
+                Marcar todas como leídas
+              </Button>
+            )}
           </DialogHeader>
-
-          <ul>
+          <ul className='space-y-3 mt-4'>
             {notifications?.length ? (
               notifications.map((notification: Notification) => (
                 <li
                   key={notification.id}
-                  className='text-sm border p-4 hover:bg-accent cursor-pointer transition rounded-md'
-                  onClick={() => {
-                    const redirectTo =
-                      user.userRole === UserRoles.USER
-                        ? '/appointments'
-                        : '/shifts'
-                    markNotificationAsRead(notification.id).then(refetch)
-                    navigate(redirectTo)
-                    setOpenNotifications(false)
-                  }}
+                  className={`border rounded-md p-4 flex flex-col gap-2 transition ${
+                    notification.isRead
+                      ? 'bg-muted text-muted-foreground'
+                      : 'bg-background hover:bg-accent'
+                  }`}
                 >
-                  {notification.message}
+                  <div className='flex items-center justify-between'>
+                    <p className='text-sm flex items-center gap-2'>
+                      <Mail
+                        className={`size-4 ${
+                          notification.isRead
+                            ? 'text-muted-foreground'
+                            : 'text-primary'
+                        }`}
+                      />
+                      {notification.message}
+                    </p>
+                  </div>
+                  <div className='flex justify-end gap-2'>
+                    {!notification.isRead && (
+                      <Button
+                        size='sm'
+                        variant='ghost'
+                        className='text-xs text-primary hover:text-primary/80'
+                        onClick={async () => {
+                          await markNotificationAsRead(notification.id)
+                          refetch()
+                        }}
+                      >
+                        <Check className='size-3 mr-1' />
+                        Marcar como leída
+                      </Button>
+                    )}
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      className='text-xs'
+                      onClick={async () => {
+                        const redirectTo =
+                          user.userRole === UserRoles.USER
+                            ? '/appointments'
+                            : '/shifts'
+                        navigate(redirectTo)
+                        setOpenNotifications(false)
+                        await markNotificationAsRead(notification.id)
+                        refetch()
+                      }}
+                    >
+                      Ver detalle
+                    </Button>
+                  </div>
                 </li>
               ))
             ) : (
@@ -266,7 +333,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
             )}
           </ul>
         </DialogContent>
-      </Dialog>
+    </Dialog>
     </SidebarProvider>
   )
 }
