@@ -14,6 +14,7 @@ import { AppointmentsReserved } from '@/pages/AppointmentsReserved'
 import { SpareParts } from '@/pages/SpareParts'
 import { Services } from '@/pages/Services'
 import { Vehicles } from "@/pages/Vehicles";
+import { MechanicDashboard } from '@/pages/MechanicDashboard'
 
 export const Routing = () => {
   return (
@@ -42,6 +43,7 @@ export const Routing = () => {
           <Route path='/shifts' element={<Shifts />} />
           <Route path='/spare-parts' element={<SpareParts />} />
           <Route path='/services' element={<Services />} />
+          <Route path='/mechanic-dashboard' element={<MechanicDashboard />} />
         </Route>
       </Route>
 

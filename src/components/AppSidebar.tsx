@@ -32,8 +32,8 @@ import {
   Cog,
   Menu,
   Bell,
+  BarChart,
 } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import {
   getNotifications,
   markNotificationAsRead,
@@ -41,9 +41,10 @@ import {
 import { useQuery } from 'react-query'
 import type { Notification } from '@/types/notifications.types'
 import { useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
-  const [open, setOpen] = useState(false)
+  const [openNotifications, setOpenNotifications] = useState(false)
   const location = useLocation()
   const user = useStore((state) => state.user)
   const themeMode = useStore((state) => state.themeMode)
@@ -94,6 +95,12 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       icon: <Car className='size-4' />,
     },
     {
+      path: '/mechanic-dashboard',
+      label: 'Dashboard',
+      userRole: [UserRoles.MECHANIC],
+      icon: <BarChart className='size-4' />,
+    },
+    {
       path: '/shifts',
       label: 'Turnos',
       userRole: [UserRoles.MECHANIC],
@@ -128,53 +135,6 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
             <span className='text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:hidden'>
               ESTALLER
             </span>
-
-            <div className='relative'>
-              <Popover onOpenChange={setOpen} open={open}>
-                <PopoverTrigger
-                  className={notifications.length > 0 ? 'cursor-pointer' : ''}
-                >
-                  <Bell className='size-6' />
-                  {notifications.length > 0 && (
-                    <span className='absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center'>
-                      {notifications.length}
-                    </span>
-                  )}
-                </PopoverTrigger>
-                {notifications.length > 0 && (
-                  <PopoverContent>
-                    <div>
-                      <div className='p-2'>
-                        <div className='font-semibold border-b'>
-                          Notificaciones
-                        </div>
-                        <ul>
-                          {notifications?.map((notification: Notification) => (
-                            <li
-                              key={notification.id}
-                              className='text-sm border p-4 hover:bg-accent cursor-pointer transition'
-                              onClick={() => {
-                                const redirectTo =
-                                  user.userRole === UserRoles.USER
-                                    ? '/appointments'
-                                    : '/shifts'
-                                markNotificationAsRead(notification.id).then(
-                                  refetch
-                                )
-                                navigate(redirectTo)
-                                setOpen(false)
-                              }}
-                            >
-                              {notification.message}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                )}
-              </Popover>
-            </div>
           </div>
           <SidebarTrigger />
         </SidebarHeader>
@@ -210,6 +170,16 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu className='gap-2'>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer'
+                tooltip='Notificaciones'
+                onClick={() => setOpenNotifications(!openNotifications)}
+              >
+                <Bell className='size-4' />
+                <span>Notificaciones</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton
                 className='hover:bg-sidebar-accent hover:text-sidebar-accent-foreground cursor-pointer'
@@ -258,6 +228,39 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
           {children}
         </SidebarInset>
       ) : null}
+      <Dialog open={openNotifications} onOpenChange={setOpenNotifications}>
+        <DialogContent className='max-w-md text-foreground'>
+          <DialogHeader>
+            <DialogTitle>Notificaciones</DialogTitle>
+          </DialogHeader>
+
+          <ul>
+            {notifications?.length ? (
+              notifications.map((notification: Notification) => (
+                <li
+                  key={notification.id}
+                  className='text-sm border p-4 hover:bg-accent cursor-pointer transition rounded-md'
+                  onClick={() => {
+                    const redirectTo =
+                      user.userRole === UserRoles.USER
+                        ? '/appointments'
+                        : '/shifts'
+                    markNotificationAsRead(notification.id).then(refetch)
+                    navigate(redirectTo)
+                    setOpenNotifications(false)
+                  }}
+                >
+                  {notification.message}
+                </li>
+              ))
+            ) : (
+              <p className='text-sm text-muted-foreground p-2'>
+                No hay notificaciones nuevas.
+              </p>
+            )}
+          </ul>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   )
 }

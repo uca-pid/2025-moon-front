@@ -12,6 +12,7 @@ export interface SparePartService {
   serviceId: number
   sparePartId: number
   quantity: number
+  sparePartName?: string
   sparePart: SparePart
 }
 
