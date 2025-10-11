@@ -5,7 +5,7 @@ export const getNextAppointmentsOfUser = () => {
   return get(`/appointments/user`)
 }
 
-export const getNextAppointmentsOfMechanic = (dateFilter: DateFilter) => {
+export const getNextAppointmentsOfMechanic = (dateFilter?: DateFilter) => {
   return get(`/appointments`, { params: { dateFilter } })
 }
 

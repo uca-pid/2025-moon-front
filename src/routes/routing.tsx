@@ -14,7 +14,8 @@ import { AppointmentsReserved } from "@/pages/AppointmentsReserved";
 import { SpareParts } from "@/pages/SpareParts";
 import { Services } from "@/pages/Services";
 import { Vehicles } from "@/pages/Vehicles";
-import { Dashboards } from "@/pages/Dashboards";
+import { MechanicDashboard } from '@/pages/MechanicDashboard'
+import { UserDashboard } from "@/pages/UserDashboard";
 
 export const Routing = () => {
   return (
@@ -34,16 +35,17 @@ export const Routing = () => {
           <Route path="/vehicles" element={<Vehicles />} />
           <Route path="/reserve" element={<Reserve />} />
           <Route path="/appointments" element={<AppointmentsReserved />} />
-          <Route path="/dashboards" element={<Dashboards />} />
+          <Route path="/user-dashboard" element={<UserDashboard />} />
         </Route>
         <Route
           element={
             <RoleResolver role={UserRoles.MECHANIC} redirectPath="/login" />
           }
         >
-          <Route path="/shifts" element={<Shifts />} />
-          <Route path="/spare-parts" element={<SpareParts />} />
-          <Route path="/services" element={<Services />} />
+          <Route path='/shifts' element={<Shifts />} />
+          <Route path='/spare-parts' element={<SpareParts />} />
+          <Route path='/services' element={<Services />} />
+          <Route path='/mechanic-dashboard' element={<MechanicDashboard />} />
         </Route>
       </Route>
 
