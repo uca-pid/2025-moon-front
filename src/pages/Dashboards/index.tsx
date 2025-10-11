@@ -1,15 +1,7 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import {
-  TrendingUp,
-  BarChart3,
-  DollarSign,
-  Hash,
-  Car,
-  Wrench,
-  Calendar,
-  Clock,
-  Store,
-} from "lucide-react";
+import { TrendingUp, BarChart3, DollarSign, Hash } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, Tooltip } from "recharts";
 
 import {
@@ -32,11 +24,6 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Container } from "@/components/Container";
-import {
-  getClientDashboardStats,
-  getClientHistoryAppointments,
-} from "@/services/dashboards";
-import type { DashboardStats } from "@/types/dashboards.types";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -46,33 +33,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getClientDashboardStats } from "@/services/services";
+import { getAppointmentsHistory } from "@/services/appointments";
+import type { DashboardStats } from "@/types/dashboard.types";
+import type { Appointment } from "@/types/appointments.types";
 
 export function Dashboards() {
   const [chartData, setChartData] = useState<any[]>([]);
-  const [rawData, setRawData] = useState<DashboardStats[]>([]);
-  const [history, setHistory] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [mode, setMode] = useState<"count" | "totalCost">("count");
   const [loading, setLoading] = useState(true);
-  const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const data: DashboardStats[] = await getClientDashboardStats();
-        setRawData(data);
+        const [stats, history] = await Promise.all([
+          getClientDashboardStats(),
+          getAppointmentsHistory(),
+        ]);
 
-        const formatted = data.map((item) => {
-          const entry: any = { service: item.serviceName };
+        const formattedChart = (stats as DashboardStats[]).map((item) => {
+          const entry: any = { service: item.serviceName ?? "Sin servicio" };
           item.vehicles.forEach((v) => {
             entry[v.vehiclePlate] = mode === "count" ? v.count : v.totalCost;
           });
           return entry;
         });
 
-        setChartData(formatted);
+        setChartData(formattedChart);
+        setAppointments(history);
       } catch (error) {
-        console.error("Error cargando estadísticas del dashboard:", error);
+        console.error("Error cargando datos del dashboard:", error);
       } finally {
         setLoading(false);
       }
@@ -80,22 +72,6 @@ export function Dashboards() {
 
     loadData();
   }, [mode]);
-
-  useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        setLoadingHistory(true);
-        const data = await getClientHistoryAppointments();
-        setHistory(data);
-      } catch (error) {
-        console.error("Error cargando historial de servicios:", error);
-      } finally {
-        setLoadingHistory(false);
-      }
-    };
-
-    loadHistory();
-  }, []);
 
   const vehicleKeys = chartData.length
     ? Object.keys(chartData[0]).filter((k) => k !== "service")
@@ -133,34 +109,29 @@ export function Dashboards() {
 
   return (
     <Container>
-      <div className="flex flex-col gap-6 p-6 text-foreground">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight flex items-center gap-3">
-            <BarChart3 className="h-10 w-10" />
-            Dashboard de servicios
-          </h1>
-          <p className="text-muted-foreground text-base">
-            Comparación por vehículo —{" "}
-            {mode === "count" ? "Cantidad de servicios" : "Costo total"}
-          </p>
-        </div>
+      <Card className="border-0 shadow-none">
+        <CardHeader className="px-6 pt-6 pb-2">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
+            <div>
+              <CardTitle className="text-4xl md:text-5xl font-extrabold tracking-tight flex items-center gap-3">
+                <BarChart3 className="h-10 w-10" />
+                Dashboard de servicios
+              </CardTitle>
+              <CardDescription className="text-base mt-2">
+                Comparación por vehículo —{" "}
+                {mode === "count" ? "Cantidad de servicios" : "Costo total"}
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
 
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4">
-              <div>
-                <CardTitle className="text-2xl font-bold tracking-tight">
-                  Estadísticas de servicios
-                </CardTitle>
-                <CardDescription>
-                  Visualización comparativa por vehículo
-                </CardDescription>
-              </div>
-
-              <div className="flex flex-col gap-3 w-full sm:w-auto">
+        <CardContent className="px-6 pb-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="w-full">
+              <div className="flex flex-col gap-3 w-full sm:w-auto mb-6">
                 <Label
                   htmlFor="mode"
-                  className="px-1 text-sm text-foreground flex items-center gap-2"
+                  className="px-1 text-base text-foreground flex items-center gap-2"
                 >
                   {mode === "count" ? (
                     <Hash className="h-4 w-4" />
@@ -182,157 +153,97 @@ export function Dashboards() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          </CardHeader>
 
-          <CardContent>
-            <div className="flex flex-col lg:flex-row gap-6">
-              <div className="w-full lg:w-1/2">
-                {loading ? (
-                  <Skeleton className="h-[400px] w-full rounded-md" />
-                ) : chartData.length > 0 ? (
-                  <ChartContainer
-                    config={chartConfig}
-                    className="min-h-[400px] w-full"
+              {loading ? (
+                <Skeleton className="h-[400px] w-full rounded-md" />
+              ) : chartData.length > 0 ? (
+                <ChartContainer
+                  config={chartConfig}
+                  className="min-h-[400px] w-full"
+                >
+                  <BarChart
+                    accessibilityLayer
+                    data={chartData}
+                    margin={{ left: 10, right: 10, top: 20, bottom: 20 }}
                   >
-                    <BarChart
-                      accessibilityLayer
-                      data={chartData}
-                      margin={{ left: 10, right: 10, top: 20, bottom: 20 }}
-                    >
-                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                      <XAxis
-                        dataKey="service"
-                        tickLine={false}
-                        tickMargin={10}
-                        axisLine={false}
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="service"
+                      tickLine={false}
+                      tickMargin={10}
+                      axisLine={false}
+                    />
+                    <Tooltip cursor={false} content={<CustomTooltip />} />
+                    {vehicleKeys.map((key) => (
+                      <Bar
+                        key={key}
+                        dataKey={key}
+                        fill={`var(--chart-${
+                          (vehicleKeys.indexOf(key) % 6) + 1
+                        })`}
+                        radius={4}
                       />
-                      <Tooltip cursor={false} content={<CustomTooltip />} />
-                      {vehicleKeys.map((key) => (
-                        <Bar
-                          key={key}
-                          dataKey={key}
-                          fill={`var(--chart-${
-                            (vehicleKeys.indexOf(key) % 6) + 1
-                          })`}
-                          radius={4}
-                        />
-                      ))}
-                    </BarChart>
-                  </ChartContainer>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
-                    <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
-                    <p className="text-lg font-medium">
-                      No hay datos disponibles
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Los datos del dashboard aparecerán aquí cuando haya
-                      servicios registrados
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex-col items-start gap-2 text-sm">
-            <div className="flex gap-2 leading-none font-medium items-center">
-              <TrendingUp className="h-4 w-4" />
-              Análisis histórico de servicios del cliente
-            </div>
-            <div className="text-muted-foreground leading-none">
-              Mostrando comparativa por vehículo y servicios realizados
-            </div>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Wrench className="h-6 w-6" />
-              Historial de servicios realizados
-            </CardTitle>
-            <CardDescription>
-              Registro completo de servicios realizados a tus vehículos
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent>
-            {loadingHistory ? (
-              <div className="space-y-2">
-                <Skeleton className="h-12 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-            ) : history.length > 0 ? (
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          Fecha
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
-                          Hora
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <Car className="h-4 w-4" />
-                          Vehículo
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <Store className="h-4 w-4" />
-                          Taller
-                        </div>
-                      </TableHead>
-                      <TableHead>Servicios realizados</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {history.map((h) => (
-                      <TableRow key={h.id}>
-                        <TableCell>{h.date}</TableCell>
-                        <TableCell>{h.time}</TableCell>
-                        <TableCell>{h.vehiclePlate}</TableCell>
-                        <TableCell>{h.workshopName}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            {h.services.map((s: string) => (
-                              <Badge key={s} variant="outline">
-                                {s}
-                              </Badge>
-                            ))}
-                          </div>
-                        </TableCell>
-                      </TableRow>
                     ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Wrench className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium">
-                  No hay servicios registrados
-                </p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  El historial de servicios aparecerá aquí cuando se completen
-                  turnos
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                  </BarChart>
+                </ChartContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <BarChart3 className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-lg font-medium">
+                    No hay datos disponibles
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Los datos del dashboard aparecerán aquí cuando haya
+                    servicios registrados
+                  </p>
+                </div>
+              )}
+              <CardFooter className="px-6 pb-6 flex-col items-start gap-2 text-sm">
+                <div className="flex gap-2 leading-none font-medium items-center">
+                  <TrendingUp className="h-4 w-4" />
+                  Análisis histórico de servicios del cliente
+                </div>
+                <div className="text-muted-foreground leading-none">
+                  Mostrando comparativa por vehículo y tipo de servicio
+                </div>
+              </CardFooter>
+              {!loading && appointments.length > 0 && (
+                <div className="mt-10">
+                  <h3 className="text-lg font-semibold mb-3">
+                    Historial de turnos
+                  </h3>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Hora</TableHead>
+                        <TableHead>Taller</TableHead>
+                        <TableHead>Vehículo</TableHead>
+                        <TableHead>Servicio(s)</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {appointments.map((a) => (
+                        <TableRow key={a.id}>
+                          <TableCell>{a.date}</TableCell>
+                          <TableCell>{a.time}</TableCell>
+                          <TableCell>{a.workshop?.workshopName}</TableCell>
+                          <TableCell>{a.vehicle?.licensePlate}</TableCell>
+                          <TableCell>
+                            {a.services?.length
+                              ? a.services.map((s) => s.name).join(", ")
+                              : "Sin servicio"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </Container>
   );
 }
