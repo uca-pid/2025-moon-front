@@ -112,6 +112,13 @@ export function Home() {
       href: "/services",
       color: "text-green-600",
     },
+    {
+      title: "Dashboard",
+      description: "Revisa estadisticas de tus vehiculos y turnos",
+      icon: ChartNoAxesCombined,
+      href: "/mechanic-dashboard",
+      color: "text-yellow-600",
+    },
   ];
 
   const quickActions =
