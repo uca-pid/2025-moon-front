@@ -83,6 +83,12 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
       icon: <Home className='size-4' />,
     },
     {
+      path: '/user-dashboard',
+      label: 'Dashboard',
+      userRole: [UserRoles.USER],
+      icon: <BarChart className='size-4' />,
+    },
+    {
       path: '/appointments',
       label: 'Mis turnos',
       userRole: [UserRoles.USER],
