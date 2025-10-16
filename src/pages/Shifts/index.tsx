@@ -16,7 +16,14 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Container } from '@/components/Container'
 import { useState } from 'react'
 import {
@@ -25,10 +32,8 @@ import {
   type Appointment,
   AppointmentStatus,
 } from '@/types/appointments.types'
-import {
-  changeAppointmentStatus,
-  getNextAppointmentsOfMechanic,
-} from '@/services/appointments'
+import type { Service } from '@/types/services.types'
+import { changeAppointmentStatus, getAppointmentsBySearch } from '@/services/appointments'
 import { sortAppointments } from '@/helpers/sort-appointments'
 import {
   Calendar,
@@ -61,12 +66,18 @@ import { useQuery } from 'react-query'
 export const Shifts = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedDateTab, setSelectedDateTab] = useState<DateFilter>('today')
+  const [dateFilter, setDateFilter] = useState<DateFilter | 'all'>('today')
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>(
+    AppointmentStatus.PENDING
+  )
   const itemsPerPage = 10
 
   const fetchShifts = async () => {
     try {
-      const shifts = await getNextAppointmentsOfMechanic(selectedDateTab)
+      const params: { status?: AppointmentStatus; dateFilter?: DateFilter } = {}
+      if (statusFilter !== 'all') params.status = statusFilter
+      if (dateFilter !== 'all') params.dateFilter = dateFilter
+      const shifts = await getAppointmentsBySearch(params)
       return shifts.map((shift: Shift) => ({
         ...shift,
         type: 'shift',
@@ -80,18 +91,18 @@ export const Shifts = () => {
     isLoading: loading,
     data: shifts,
     refetch,
-  } = useQuery(['shifts', selectedDateTab], async () => fetchShifts(), {
+  } = useQuery<Shift[]>(['shifts', dateFilter, statusFilter], async () => fetchShifts(), {
     initialData: [],
   })
 
-  const filteredShifts = shifts.filter((shift) => {
+  const filteredShifts = (shifts as Shift[]).filter((shift: Shift) => {
     const searchLower = searchTerm.toLowerCase()
     return (
       shift.date.toLowerCase().includes(searchLower) ||
       shift.time.toLowerCase().includes(searchLower) ||
       (shift.type === 'shift' &&
         shift.user.fullName.toLowerCase().includes(searchLower)) ||
-      shift.services.some((s) => s.name.toLowerCase().includes(searchLower))
+      shift.services.some((s: Service) => s.name.toLowerCase().includes(searchLower))
     )
   })
 
@@ -137,19 +148,51 @@ export const Shifts = () => {
                 />
               </div>
             </div>
-            <Tabs
-              value={selectedDateTab}
-              onValueChange={(value: string) => {
-                setSelectedDateTab(value as DateFilter)
-                setCurrentPage(1)
-              }}
-            >
-              <TabsList className='grid w-full grid-cols-3'>
-                <TabsTrigger value='past'>PASADOS</TabsTrigger>
-                <TabsTrigger value='today'>HOY</TabsTrigger>
-                <TabsTrigger value='future'>FUTUROS</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className='flex flex-wrap items-center gap-3'>
+              <span className='text-xs text-muted-foreground'>Filtros:</span>
+              <div className='flex items-center gap-2'>
+                <Label className='text-xs text-muted-foreground'>Fecha</Label>
+                <Select
+                  value={dateFilter}
+                  onValueChange={(value) => {
+                    setDateFilter(value as DateFilter | 'all')
+                    setCurrentPage(1)
+                  }}
+                >
+                  <SelectTrigger size='sm' aria-label='Filtrar por fecha'>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='all'>TODAS</SelectItem>
+                    <SelectItem value='past'>PASADOS</SelectItem>
+                    <SelectItem value='today'>HOY</SelectItem>
+                    <SelectItem value='future'>FUTUROS</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className='flex items-center gap-2'>
+                <Label className='text-xs text-muted-foreground'>Estado</Label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    setStatusFilter(value as AppointmentStatus | 'all')
+                    setCurrentPage(1)
+                  }}
+                >
+                  <SelectTrigger size='sm' aria-label='Filtrar por estado'>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='all'>TODAS</SelectItem>
+                    {Object.values(AppointmentStatus).map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {appointmentStatusToLabel[status]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
