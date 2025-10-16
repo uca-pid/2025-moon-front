@@ -85,7 +85,7 @@ export function Home() {
       title: "Dashboards",
       description: "Revisa estadisticas de tus vehiculos y turnos",
       icon: ChartNoAxesCombined,
-      href: "/dashboards",
+      href: "/user-dashboard",
       color: "text-yellow-600",
     },
   ];
@@ -111,6 +111,13 @@ export function Home() {
       icon: Settings,
       href: "/services",
       color: "text-green-600",
+    },
+    {
+      title: "Dashboard",
+      description: "Revisa estadisticas de tus vehiculos y turnos",
+      icon: ChartNoAxesCombined,
+      href: "/mechanic-dashboard",
+      color: "text-yellow-600",
     },
   ];
 
