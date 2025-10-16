@@ -36,7 +36,6 @@ import {
   Check,
   Mail,
 } from 'lucide-react'
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 
 import {
   getNotifications,
@@ -49,7 +48,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 import { Button } from './ui/button'
 
 export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
-  const [open, setOpen] = useState(false)
   const [openNotifications, setOpenNotifications] = useState(false)
   const location = useLocation()
   const user = useStore((state) => state.user)
@@ -155,53 +153,6 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
             <span className='text-sm font-semibold transition-opacity duration-200 group-data-[collapsible=icon]:hidden'>
               ESTALLER
             </span>
-
-            <div className='relative'>
-              <Popover onOpenChange={setOpen} open={open}>
-                <PopoverTrigger
-                  className={notifications.length > 0 ? 'cursor-pointer' : ''}
-                >
-                  <Bell className='size-6' />
-                  {notifications.length > 0 && (
-                    <span className='absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full px-1.5 py-0.5 min-w-[18px] text-center'>
-                      {notifications.length}
-                    </span>
-                  )}
-                </PopoverTrigger>
-                {notifications.length > 0 && (
-                  <PopoverContent>
-                    <div>
-                      <div className='p-2'>
-                        <div className='font-semibold border-b'>
-                          Notificaciones
-                        </div>
-                        <ul>
-                          {notifications?.map((notification: Notification) => (
-                            <li
-                              key={notification.id}
-                              className='text-sm border p-4 hover:bg-accent cursor-pointer transition'
-                              onClick={() => {
-                                const redirectTo =
-                                  user.userRole === UserRoles.USER
-                                    ? '/appointments'
-                                    : '/shifts'
-                                markNotificationAsRead(notification.id).then(
-                                  refetch
-                                )
-                                navigate(redirectTo)
-                                setOpen(false)
-                              }}
-                            >
-                              {notification.message}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                )}
-              </Popover>
-            </div>
           </div>
           <SidebarTrigger />
         </SidebarHeader>
