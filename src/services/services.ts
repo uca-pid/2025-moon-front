@@ -25,3 +25,7 @@ export const updateService = (service: CreateService) => {
 export const deleteService = (id: number) => {
   return del(`/services/${id}`)
 }
+
+export const getRequestedServicesByMechanicId = () => {
+  return get(`/services/requested-services`)
+}

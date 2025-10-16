@@ -18,6 +18,16 @@ export interface Appointment {
   services: Service[]
   workshop: User
   vehicle: Vehicle
+  status: AppointmentStatus
+}
+
+export enum AppointmentStatus {
+  PENDING = 'PENDING',
+  CONFIRMED = 'CONFIRMED',
+  IN_SERVICE = 'IN_SERVICE',
+  SERVICE_COMPLETED = 'SERVICE_COMPLETED',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
 }
 
 export interface Shift {
