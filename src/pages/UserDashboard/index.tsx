@@ -229,14 +229,14 @@ export const UserDashboard = () => {
                           <TableCell className="font-medium">{h.date}</TableCell>
                           <TableCell>{h.time}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">{h.vehiclePlate}</Badge>
+                            <Badge variant="outline">{h.vehicle.licensePlate}</Badge>
                           </TableCell>
-                          <TableCell>{h.workshopName}</TableCell>
+                          <TableCell>{h.workshop.workshopName}</TableCell>
                           <TableCell>
                             <div className="flex flex-wrap gap-1">
-                              {h.services.map((s: string) => (
-                                <Badge key={s} variant="secondary">
-                                  {s}
+                              {h.services.map((s: any) => (
+                                <Badge key={s.id} variant="secondary">
+                                  {s.name}
                                 </Badge>
                               ))}
                             </div>
@@ -256,16 +256,6 @@ export const UserDashboard = () => {
                 </div>
               )}
             </CardContent>
-
-            <CardFooter className="flex-col items-start gap-2 text-sm border-t pt-4">
-              <div className="flex gap-2 font-medium leading-none items-center">
-                <Calendar className="h-4 w-4 text-primary" />
-                Historial completo de servicios
-              </div>
-              <div className="leading-none text-muted-foreground">
-                Todos los servicios realizados ordenados por fecha
-              </div>
-            </CardFooter>
           </Card>
         </div>
       </div>

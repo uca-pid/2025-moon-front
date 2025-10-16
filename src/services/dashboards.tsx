@@ -1,13 +1,10 @@
-import { get } from "@/utils/rest-api";
-import type { DashboardStats } from "@/types/dashboards.types";
+import { get } from '@/utils/rest-api'
+import type { DashboardStats } from '@/types/dashboards.types'
 
 export const getClientDashboardStats = (): Promise<DashboardStats[]> => {
-  return get(`/client/dashboard/stats`);
-};
+  return get(`/services/stats/user`)
+}
 
-export const getClientUpcomingAppointments = () => {
-  return get(`/client/dashboard/upcoming`);
-};
 export const getClientHistoryAppointments = () => {
-  return get(`/client/dashboard/history`);
-};
+  return get(`/appointments/user/history`)
+}
