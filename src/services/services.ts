@@ -29,3 +29,7 @@ export const deleteService = (id: number) => {
 export const getClientDashboardStats = () => {
   return get("/services/stats/user");
 };
+
+export const getRequestedServicesByMechanicId = () => {
+  return get(`/services/requested-services`)
+}

@@ -318,7 +318,6 @@ export const Services = () => {
                           <TableCell>
                             <span>{service.price}</span>
                           </TableCell>
-                          {console.log(getServiceStatus(service))}
                           <TableCell>
                             <Tooltip>
                               <TooltipTrigger>

@@ -383,7 +383,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
             )}
           </ul>
         </DialogContent>
-    </Dialog>
+      </Dialog>
     </SidebarProvider>
   )
 }
