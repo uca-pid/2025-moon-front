@@ -1,89 +1,41 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Container } from '@/components/Container'
-import { useState } from 'react'
-import {
-  type Shift,
-  type DateFilter,
-  type Appointment,
-  AppointmentStatus,
-} from '@/types/appointments.types'
-import type { Service } from '@/types/services.types'
-import { changeAppointmentStatus, getAppointmentsBySearch } from '@/services/appointments'
-import { sortAppointments } from '@/helpers/sort-appointments'
-import {
-  Calendar,
-  Clock,
-  User,
-  Car,
-  Wrench,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  CircleDot,
-  ClipboardMinus,
-  BanIcon,
-  CircleArrowRight,
-} from 'lucide-react'
-import { AppointmentStatusBadge } from '@/components/AppointmentStatusBadge'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
-import {
-  appointmentStatusToLabel,
-  isCancelable,
-  isInFinalState,
-  nextStateOf,
-} from '@/helpers/appointment-status'
-import { useQuery } from 'react-query'
+import { Container } from "@/components/Container"
+import { useState } from "react"
+import type { Shift, DateFilter, Appointment, AppointmentStatus } from "@/types/appointments.types"
+import type { Service } from "@/types/services.types"
+import { changeAppointmentStatus, getAppointmentsBySearch } from "@/services/appointments"
+import { sortAppointments } from "@/helpers/sort-appointments"
+import { Calendar, Clock, User, Car, Wrench, Search, CircleDot, BanIcon, CircleArrowRight } from "lucide-react"
+import { AppointmentStatusBadge } from "@/components/AppointmentStatusBadge"
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
+import { appointmentStatusToLabel, isCancelable, isInFinalState, nextStateOf } from "@/helpers/appointment-status"
+import { useQuery } from "react-query"
+import { CustomTable } from "@/components/CustomTable"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
-export const Shifts = () => {
-  const [searchTerm, setSearchTerm] = useState('')
+export function Shifts() {
+  const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [dateFilter, setDateFilter] = useState<DateFilter | 'all'>('today')
-  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | 'all'>(
-    AppointmentStatus.PENDING
-  )
+  const [dateFilter, setDateFilter] = useState<DateFilter | "all">("today")
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatus | "all">("PENDING" as AppointmentStatus)
   const itemsPerPage = 10
 
   const fetchShifts = async () => {
     try {
       const params: { status?: AppointmentStatus; dateFilter?: DateFilter } = {}
-      if (statusFilter !== 'all') params.status = statusFilter
-      if (dateFilter !== 'all') params.dateFilter = dateFilter
+      if (statusFilter !== "all") params.status = statusFilter
+      if (dateFilter !== "all") params.dateFilter = dateFilter
       const shifts = await getAppointmentsBySearch(params)
       return shifts.map((shift: Shift) => ({
         ...shift,
-        type: 'shift',
+        type: "shift",
       }))
     } catch (error) {
-      console.error('Error fetching shifts:', error)
+      console.error("Error fetching shifts:", error)
+      return []
     }
   }
 
@@ -91,7 +43,7 @@ export const Shifts = () => {
     isLoading: loading,
     data: shifts,
     refetch,
-  } = useQuery<Shift[]>(['shifts', dateFilter, statusFilter], async () => fetchShifts(), {
+  } = useQuery<Shift[]>(["shifts", dateFilter, statusFilter], async () => fetchShifts(), {
     initialData: [],
   })
 
@@ -100,8 +52,7 @@ export const Shifts = () => {
     return (
       shift.date.toLowerCase().includes(searchLower) ||
       shift.time.toLowerCase().includes(searchLower) ||
-      (shift.type === 'shift' &&
-        shift.user.fullName.toLowerCase().includes(searchLower)) ||
+      (shift.type === "shift" && shift.user.fullName.toLowerCase().includes(searchLower)) ||
       shift.services.some((s: Service) => s.name.toLowerCase().includes(searchLower))
     )
   })
@@ -109,321 +60,202 @@ export const Shifts = () => {
   const totalPages = Math.ceil(filteredShifts.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
-  const currentShifts = sortAppointments(filteredShifts).slice(
-    startIndex,
-    endIndex
-  )
+  const currentShifts = sortAppointments(filteredShifts).slice(startIndex, endIndex)
 
   return (
     <Container>
-      <div className='flex flex-col gap-6 p-6'>
-        <div className='flex flex-col gap-2'>
-          <h1 className='text-3xl font-bold text-primary'>Gestión de Turnos</h1>
-          <p className='text-muted-foreground'>
-            Administra y visualiza todos los turnos programados
-          </p>
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-bold text-foreground">Gestión de Turnos</h1>
+          <p className="text-muted-foreground">Administra y visualiza todos los turnos programados</p>
         </div>
-        <Card>
-          <CardHeader>
-            <div className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>
-              <div>
-                <CardTitle>Próximos Turnos</CardTitle>
-                <CardDescription>
-                  {filteredShifts.length}{' '}
-                  {filteredShifts.length === 1
-                    ? 'turno programado'
-                    : 'turnos programados'}
-                </CardDescription>
-              </div>
-              <div className='relative w-full md:w-80'>
-                <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground' />
-                <Input
-                  placeholder='Buscar por cliente, fecha o servicio...'
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value)
-                    setCurrentPage(1)
-                  }}
-                  className='pl-10'
-                />
-              </div>
+
+        <div className="bg-card rounded-3xl shadow-sm border border-border/50">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-3">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Próximos Turnos</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {filteredShifts.length} {filteredShifts.length === 1 ? "turno programado" : "turnos programados"}
+              </p>
             </div>
-            <div className='flex flex-wrap items-center gap-3'>
-              <span className='text-xs text-muted-foreground'>Filtros:</span>
-              <div className='flex items-center gap-2'>
-                <Label className='text-xs text-muted-foreground'>Fecha</Label>
-                <Select
-                  value={dateFilter}
-                  onValueChange={(value) => {
-                    setDateFilter(value as DateFilter | 'all')
-                    setCurrentPage(1)
-                  }}
-                >
-                  <SelectTrigger size='sm' aria-label='Filtrar por fecha'>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='all'>TODAS</SelectItem>
-                    <SelectItem value='past'>PASADOS</SelectItem>
-                    <SelectItem value='today'>HOY</SelectItem>
-                    <SelectItem value='future'>FUTUROS</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className='flex items-center gap-2'>
-                <Label className='text-xs text-muted-foreground'>Estado</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value as AppointmentStatus | 'all')
-                    setCurrentPage(1)
-                  }}
-                >
-                  <SelectTrigger size='sm' aria-label='Filtrar por estado'>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value='all'>TODAS</SelectItem>
-                    {Object.values(AppointmentStatus).map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {appointmentStatusToLabel[status]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por cliente, fecha o servicio..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value)
+                  setCurrentPage(1)
+                }}
+                className="pl-10 rounded-xl"
+              />
             </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className='flex items-center justify-center py-12'>
-                <div className='flex flex-col items-center gap-2'>
-                  <div className='h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent' />
-                  <p className='text-sm text-muted-foreground'>
-                    Cargando turnos...
-                  </p>
-                </div>
-              </div>
-            ) : currentShifts.length > 0 ? (
-              <>
-                <div className='rounded-md border'>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>
-                          <div className='flex items-center gap-2'>
-                            <Calendar className='h-4 w-4' />
-                            Fecha
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className='flex items-center gap-2'>
-                            <Clock className='h-4 w-4' />
-                            Hora
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className='flex items-center gap-2'>
-                            <User className='h-4 w-4' />
-                            Cliente
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className='flex items-center gap-2'>
-                            <Car className='h-4 w-4' />
-                            Vehículo
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className='flex items-center gap-2'>
-                            <Wrench className='h-4 w-4' />
-                            Servicios
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className='flex items-center gap-2'>
-                            <CircleDot className='h-4 w-4' />
-                            Estado
-                          </div>
-                        </TableHead>
-                        <TableHead>
-                          <div className='flex items-center gap-2'>
-                            <ClipboardMinus className='h-4 w-4' />
-                            Acciones
-                          </div>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {currentShifts.map((shift) => (
-                        <TableRow key={shift.id} className='hover:bg-muted/50'>
-                          <TableCell className='font-medium'>
-                            {shift.date}
-                          </TableCell>
-                          <TableCell>{shift.time}</TableCell>
-                          <TableCell>
-                            {shift.type === 'shift' && shift.user.fullName}
-                          </TableCell>
-                          <TableCell>{shift.vehicle.licensePlate}</TableCell>
-                          <TableCell>
-                            <div className='flex flex-wrap gap-1'>
-                              {shift.services.map((service) => (
-                                <Badge
-                                  key={service.id}
-                                  variant='warning'
-                                  className='text-xs'
-                                >
-                                  {service.name}
-                                </Badge>
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className='flex flex-wrap gap-1'>
-                              <AppointmentStatusBadge
-                                value={(shift as Appointment).status}
-                              />
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className='flex flex-wrap gap-1'>
-                              {isCancelable((shift as Appointment).status) && (
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Button
-                                      variant={'destructive'}
-                                      size='icon'
-                                      onClick={async () => {
-                                        await changeAppointmentStatus(
-                                          shift.id,
-                                          AppointmentStatus.CANCELLED
-                                        )
-                                        refetch()
-                                      }}
-                                    >
-                                      <BanIcon className='h-4 w-4' />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side='bottom'>
-                                    <p>Cancelar turno</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
-                              {!isInFinalState(
-                                (shift as Appointment).status
-                              ) && (
-                                <Tooltip>
-                                  <TooltipTrigger>
-                                    <Button
-                                      variant={'default'}
-                                      size='icon'
-                                      onClick={async () => {
-                                        await changeAppointmentStatus(
-                                          shift.id,
-                                          nextStateOf(
-                                            (shift as Appointment).status
-                                          )
-                                        )
-                                        refetch()
-                                      }}
-                                    >
-                                      <CircleArrowRight className='h-4 w-4' />
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent side='bottom'>
-                                    <p>
-                                      Pasar turno al estado{' '}
-                                      {
-                                        appointmentStatusToLabel[
-                                          nextStateOf(
-                                            (shift as Appointment).status
-                                          )
-                                        ]
-                                      }
-                                    </p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 p-3">
+            <span className="text-xs text-muted-foreground">Filtros:</span>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground">Fecha</Label>
+              <Select
+                value={dateFilter}
+                onValueChange={(value) => {
+                  setDateFilter(value as DateFilter | "all")
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="h-9 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all">TODAS</SelectItem>
+                  <SelectItem value="past">PASADOS</SelectItem>
+                  <SelectItem value="today">HOY</SelectItem>
+                  <SelectItem value="future">FUTUROS</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs text-muted-foreground">Estado</Label>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  setStatusFilter(value as AppointmentStatus | "all")
+                  setCurrentPage(1)
+                }}
+              >
+                <SelectTrigger className="h-9 rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="all">TODAS</SelectItem>
+                  {Object.values(["PENDING", "IN_SERVICE", "SERVICE_COMPLETED", "COMPLETED", "CANCELLED"]).map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {appointmentStatusToLabel[status as AppointmentStatus]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <TooltipProvider>
+            <CustomTable
+              data={currentShifts}
+              columns={[
+                {
+                  key: "date",
+                  label: "Fecha",
+                  icon: <Calendar className="h-4 w-4" />,
+                  render: (item) => <span className="font-medium">{item.date}</span>,
+                },
+                {
+                  key: "time",
+                  label: "Hora",
+                  icon: <Clock className="h-4 w-4" />,
+                  render: (item) => item.time,
+                },
+                {
+                  key: "user",
+                  label: "Cliente",
+                  icon: <User className="h-4 w-4" />,
+                  render: (item) => (item.type === "shift" ? item.user.fullName : ""),
+                },
+                {
+                  key: "vehicle",
+                  label: "Vehículo",
+                  icon: <Car className="h-4 w-4" />,
+                  render: (item) => item.vehicle.licensePlate,
+                },
+                {
+                  key: "services",
+                  label: "Servicios",
+                  icon: <Wrench className="h-4 w-4" />,
+                  render: (item) => (
+                    <div className="flex flex-wrap gap-1">
+                      {item.services.map((service: Service) => (
+                        <Badge key={service.id} variant="secondary" className="text-xs rounded-full">
+                          {service.name}
+                        </Badge>
                       ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                {totalPages > 1 && (
-                  <div className='flex items-center justify-between mt-4'>
-                    <p className='text-sm text-muted-foreground'>
-                      Mostrando {startIndex + 1} a{' '}
-                      {Math.min(endIndex, filteredShifts.length)} de{' '}
-                      {filteredShifts.length} turnos
-                    </p>
-                    <div className='flex items-center gap-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() =>
-                          setCurrentPage((prev) => Math.max(1, prev - 1))
-                        }
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className='h-4 w-4 mr-1' />
-                        Anterior
-                      </Button>
-                      <div className='flex items-center gap-1'>
-                        {Array.from(
-                          { length: totalPages },
-                          (_, i) => i + 1
-                        ).map((page) => (
-                          <Button
-                            key={page}
-                            variant={
-                              currentPage === page ? 'default' : 'outline'
-                            }
-                            size='sm'
-                            onClick={() => setCurrentPage(page)}
-                            className='w-9'
-                          >
-                            {page}
-                          </Button>
-                        ))}
-                      </div>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() =>
-                          setCurrentPage((prev) =>
-                            Math.min(totalPages, prev + 1)
-                          )
-                        }
-                        disabled={currentPage === totalPages}
-                      >
-                        Siguiente
-                        <ChevronRight className='h-4 w-4 ml-1' />
-                      </Button>
                     </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className='flex flex-col items-center justify-center py-12 gap-4'>
-                <div className='rounded-full bg-muted p-4'>
-                  <Calendar className='h-8 w-8 text-muted-foreground' />
-                </div>
-                <div className='text-center'>
-                  <h3 className='font-semibold text-lg'>
-                    No hay turnos programados
-                  </h3>
-                  <p className='text-sm text-muted-foreground mt-1'>
-                    {searchTerm
-                      ? 'No se encontraron turnos con ese criterio de búsqueda'
-                      : 'Aún no tienes turnos agendados'}
-                  </p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ),
+                },
+                {
+                  key: "status",
+                  label: "Estado",
+                  icon: <CircleDot className="h-4 w-4" />,
+                  render: (item) => <AppointmentStatusBadge value={(item as Appointment).status} />,
+                },
+                {
+                  key: "actions",
+                  label: "Acciones",
+                  render: (item) => (
+                    <div className="flex flex-wrap gap-1">
+                      {isCancelable((item as Appointment).status) && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={async (e) => {
+                                e.stopPropagation()
+                                await changeAppointmentStatus(item.id, "CANCELLED" as AppointmentStatus)
+                                refetch()
+                              }}
+                              className="rounded-xl hover:bg-destructive/10 text-destructive hover:text-destructive"
+                            >
+                              <BanIcon className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>Cancelar turno</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                      {!isInFinalState((item as Appointment).status) && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={async (e) => {
+                                e.stopPropagation()
+                                await changeAppointmentStatus(item.id, nextStateOf((item as Appointment).status))
+                                refetch()
+                              }}
+                              className="rounded-xl text-primary hover:text-green-500 hover:bg-green-500/10"
+                            >
+                              <CircleArrowRight className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            <p>
+                              Pasar turno al estado{" "}
+                              {appointmentStatusToLabel[nextStateOf((item as Appointment).status)]}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
+                  ),
+                },
+              ]}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredShifts.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              loading={loading}
+              emptyState={{
+                icon: <Calendar className="h-8 w-8 text-muted-foreground" />,
+                title: "No hay turnos programados",
+                description: searchTerm
+                  ? "No se encontraron turnos con ese criterio de búsqueda"
+                  : "Aún no tienes turnos agendados",
+              }}
+            />
+          </TooltipProvider>
+        </div>
       </div>
     </Container>
   )

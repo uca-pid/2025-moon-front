@@ -7,7 +7,7 @@ interface Props {
 }
 
 export const UserResolver: React.FC<Props> = ({ children }) => {
-  const { user } = useStore()
+  const { user, clearSession } = useStore()
   const location = useLocation()
 
   const hasHydrated = useStore.persist?.hasHydrated?.() ?? true
@@ -31,6 +31,7 @@ export const UserResolver: React.FC<Props> = ({ children }) => {
     }
   } else {
     if (!routesDeflect.includes(location.pathname)) {
+      clearSession()
       return <Navigate to={'/login'} replace />
     }
   }
