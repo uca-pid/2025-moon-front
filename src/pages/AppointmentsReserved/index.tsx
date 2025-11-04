@@ -1,145 +1,142 @@
-import { Container } from '@/components/Container'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { sortAppointments } from '@/helpers/sort-appointments'
-import { AppointmentStatus, type Appointment } from '@/types/appointments.types'
-import {
-  changeAppointmentStatus,
-  getNextAppointmentsOfUser,
-} from '@/services/appointments'
-import { Car, CheckCircle, Clock, Wrench, CircleDot } from 'lucide-react'
-import { Calendar } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useQuery } from 'react-query'
-import { AppointmentStatusBadge } from '@/components/AppointmentStatusBadge'
-import { isCancelable } from '@/helpers/appointment-status'
+"use client"
 
-export const AppointmentsReserved = () => {
-  const { data: appointments, refetch } = useQuery(
-    'appointments',
-    () => getNextAppointmentsOfUser(),
-    { initialData: [] }
-  )
+import { useState } from "react"
+import { useQuery } from "react-query"
+import { Calendar, Car, Wrench, ChevronDown, ChevronUp } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { sortAppointments } from "@/helpers/sort-appointments"
+import { AppointmentStatus, type Appointment } from "@/types/appointments.types"
+import { changeAppointmentStatus, getNextAppointmentsOfUser } from "@/services/appointments"
+import { AppointmentStatusBadge } from "@/components/AppointmentStatusBadge"
+import { isCancelable } from "@/helpers/appointment-status"
+import { Container } from "@/components/Container"
+
+export function AppointmentsReserved() {
+  const { data: appointments, refetch } = useQuery("appointments", () => getNextAppointmentsOfUser(), {
+    initialData: [],
+  })
+
+  const [expandedId, setExpandedId] = useState<number | null>(null)
+
+  const toggleExpand = (id: number) => {
+    setExpandedId(expandedId === id ? null : id)
+  }
 
   return (
     <Container>
-      <div className='flex flex-col justify-center items-center p-6 text-foreground'>
-        <h1 className='text-primary text-4xl md:text-5xl font-extrabold tracking-tight mb-8 text-left w-full'>
-          Turnos reservados
-        </h1>
-        <div className='flex flex-col gap-4 text-foreground w-full'>
-          <div className='flex flex-col gap-4'>
-            {appointments.length > 0 ? (
-              sortAppointments(appointments).map((app) => {
-                return (
-                  <Card
-                    className='border border-border hover:border-primary/50 transition-colors'
-                    key={app.id}
+      <div className="max-w-4xl space-y-6">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight text-foreground">Mis Turnos</h1>
+          <p className="text-muted-foreground">Gestiona tus turnos reservados</p>
+        </div>
+
+        <div className="space-y-3">
+          {appointments.length > 0 ? (
+            sortAppointments(appointments).map((app) => {
+              const isExpanded = expandedId === app.id
+              return (
+                <div
+                  key={app.id}
+                  className="bg-card rounded-3xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden"
+                >
+                  <button
+                    onClick={() => toggleExpand(app.id)}
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
                   >
-                    <CardHeader className='pb-3'>
-                      <CardTitle className='text-xl flex items-center gap-2'>
-                        <CheckCircle className='h-5 w-5 text-primary' />
-                        Turno #{app.id}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className='space-y-4'>
-                      <div className='flex flex-col sm:flex-row gap-3 sm:gap-6'>
-                        <div className='flex items-center gap-2 text-foreground'>
-                          <Calendar className='h-4 w-4 text-muted-foreground' />
-                          <span className='font-medium'>{app.date}</span>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <Calendar className="h-5 w-5 text-primary" />
+                      </div>
+                      <div className="text-left">
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold text-foreground">{app.date}</span>
+                          <span className="text-sm text-muted-foreground">{app.time}</span>
                         </div>
-                        <div className='flex items-center gap-2 text-foreground'>
-                          <Clock className='h-4 w-4 text-muted-foreground' />
-                          <span className='font-medium'>{app.time}</span>
+                        <div className="text-sm text-muted-foreground mt-1">
+                          {(app as Appointment).vehicle?.licensePlate} • {(app as Appointment).workshop.workshopName}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <AppointmentStatusBadge value={(app as Appointment).status} />
+                      {isExpanded ? (
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                      )}
+                    </div>
+                  </button>
+
+                  {isExpanded && (
+                    <div className="px-6 pb-6 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="h-px bg-border" />
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center flex-shrink-0">
+                            <Car className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Vehículo</p>
+                            <p className="font-medium text-foreground">{(app as Appointment).vehicle?.licensePlate}</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center flex-shrink-0">
+                            <Wrench className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground mb-1">Taller</p>
+                            <p className="font-medium text-foreground">{(app as Appointment).workshop.workshopName}</p>
+                          </div>
                         </div>
                       </div>
 
-                      <div className='flex items-start gap-2'>
-                        <Car className='h-4 w-4 text-muted-foreground mt-0.5' />
-                        <div>
-                          <p className='text-sm text-muted-foreground'>
-                            Vehículo
-                          </p>
-                          <p className='font-medium text-foreground'>
-                            {(app as Appointment).vehicle?.licensePlate}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className='flex items-start gap-2'>
-                        <Wrench className='h-4 w-4 text-muted-foreground mt-0.5' />
-                        <div>
-                          <p className='text-sm text-muted-foreground'>
-                            Taller
-                          </p>
-                          <p className='font-medium text-foreground'>
-                            {(app as Appointment).workshop.workshopName}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className='flex items-start gap-2'>
-                        <CircleDot className='h-4 w-4 text-muted-foreground mt-0.5' />
-                        <div>
-                          <p className='text-sm text-muted-foreground'>
-                            Estado
-                          </p>
-                          <p className='font-medium text-foreground'>
-                            <AppointmentStatusBadge
-                              value={(app as Appointment).status}
-                            />
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className='space-y-2'>
-                        <p className='text-sm text-muted-foreground'>
-                          Servicios
-                        </p>
-                        <div className='flex flex-wrap gap-2'>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2">Servicios</p>
+                        <div className="flex flex-wrap gap-2">
                           {app.services?.length > 0 ? (
                             app.services.map((service, index) => (
-                              <Badge
-                                key={index}
-                                variant='secondary'
-                                className='text-sm'
-                              >
+                              <Badge key={index} variant="secondary" className="rounded-full px-3 py-1">
                                 {service.name}
                               </Badge>
                             ))
                           ) : (
-                            <Badge variant='outline' className='text-sm'>
+                            <Badge variant="outline" className="rounded-full">
                               Sin servicios
                             </Badge>
                           )}
                         </div>
-                        {isCancelable((app as Appointment).status) && (
-                          <Button
-                            variant='destructive'
-                            onClick={async () => {
-                              await changeAppointmentStatus(
-                                app.id,
-                                AppointmentStatus.CANCELLED
-                              )
-                              await refetch()
-                            }}
-                          >
-                            Cancelar turno
-                          </Button>
-                        )}
                       </div>
-                    </CardContent>
-                  </Card>
-                )
-              })
-            ) : (
-              <div className='flex justify-center items-center h-full w-full py-12'>
-                <p className='text-center text-muted-foreground'>
-                  No hay turnos agendados
-                </p>
+
+                      {isCancelable((app as Appointment).status) && (
+                        <Button
+                          variant="destructive"
+                          className="w-full rounded-2xl"
+                          onClick={async () => {
+                            await changeAppointmentStatus(app.id, AppointmentStatus.CANCELLED)
+                            await refetch()
+                          }}
+                        >
+                          Cancelar turno
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
+                <Calendar className="h-10 w-10 text-primary" />
               </div>
-            )}
-          </div>
+              <p className="text-lg font-medium text-foreground mb-2">No hay turnos agendados</p>
+              <p className="text-sm text-muted-foreground">Tus próximos turnos aparecerán aquí</p>
+            </div>
+          )}
         </div>
       </div>
     </Container>

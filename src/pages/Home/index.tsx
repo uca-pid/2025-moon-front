@@ -1,63 +1,43 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Calendar,
-  Car,
-  Package,
-  Settings,
-  UserIcon,
-  Clock,
-  ChartNoAxesCombined,
-} from "lucide-react";
-import { useState, useEffect } from "react";
-import { getNextAppointmentsOfUser } from "@/services/appointments";
-import { getVehiclesOfUser } from "@/services/vehicles";
-import type { Appointment } from "@/types/appointments.types";
-import { useStore } from "@/zustand/store";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button"
+import { Calendar, Car, Package, Settings, UserIcon, Clock, ArrowUpFromLine as ChartNoAxesCombined } from "lucide-react"
+import { useState, useEffect } from "react"
+import { getNextAppointmentsOfUser } from "@/services/appointments"
+import { getVehiclesOfUser } from "@/services/vehicles"
+import type { Appointment } from "@/types/appointments.types"
+import { useStore } from "@/zustand/store"
+import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 
 export function Home() {
-  const user = useStore((state) => state.user);
-  const navigate = useNavigate();
+  const user = useStore((state) => state.user)
+  const navigate = useNavigate()
 
   const [stats, setStats] = useState({
     upcomingAppointments: 0,
     vehicles: 0,
-  });
+  })
 
   useEffect(() => {
-    if (user.userRole !== "USER") return;
+    if (user.userRole !== "USER") return
 
     const fetchStats = async () => {
       try {
-        const [appointmentsRaw, vehiclesRaw] = await Promise.all([
-          getNextAppointmentsOfUser(),
-          getVehiclesOfUser(),
-        ]);
+        const [appointmentsRaw, vehiclesRaw] = await Promise.all([getNextAppointmentsOfUser(), getVehiclesOfUser()])
 
-        const appointments = (appointmentsRaw ?? []) as Appointment[];
-        const vehicles = (vehiclesRaw ?? []) as unknown[];
+        const appointments = (appointmentsRaw ?? []) as Appointment[]
+        const vehicles = (vehiclesRaw ?? []) as unknown[]
 
         setStats({
-          upcomingAppointments: Array.isArray(appointments)
-            ? appointments.length
-            : 0,
+          upcomingAppointments: Array.isArray(appointments) ? appointments.length : 0,
           vehicles: Array.isArray(vehicles) ? vehicles.length : 0,
-        });
+        })
       } catch {
-        toast.error("Error al obtener las estadísticas");
+        toast.error("Error al obtener las estadísticas")
       }
-    };
+    }
 
-    fetchStats();
-  }, [user.userRole]);
+    fetchStats()
+  }, [user.userRole])
 
   const userQuickActions = [
     {
@@ -65,30 +45,34 @@ export function Home() {
       description: "Agenda un nuevo turno para tu vehículo",
       icon: Calendar,
       href: "/reserve",
-      color: "text-blue-600",
+      gradient: "from-blue-50 to-blue-100/50",
+      iconColor: "text-blue-600",
     },
     {
       title: "Mis Vehículos",
       description: "Gestiona tus vehículos registrados",
       icon: Car,
       href: "/vehicles",
-      color: "text-green-600",
+      gradient: "from-emerald-50 to-emerald-100/50",
+      iconColor: "text-emerald-600",
     },
     {
       title: "Mis Turnos",
       description: "Revisa tus turnos reservados",
       icon: Clock,
       href: "/appointments",
-      color: "text-purple-600",
+      gradient: "from-violet-50 to-violet-100/50",
+      iconColor: "text-violet-600",
     },
     {
       title: "Dashboards",
-      description: "Revisa estadisticas de tus vehiculos y turnos",
+      description: "Revisa estadísticas de tus vehículos y turnos",
       icon: ChartNoAxesCombined,
       href: "/user-dashboard",
-      color: "text-yellow-600",
+      gradient: "from-amber-50 to-amber-100/50",
+      iconColor: "text-amber-600",
     },
-  ];
+  ]
 
   const mechanicQuickActions = [
     {
@@ -96,140 +80,129 @@ export function Home() {
       description: "Gestiona tus turnos asignados",
       icon: Calendar,
       href: "/shifts",
-      color: "text-blue-600",
+      gradient: "from-blue-50 to-blue-100/50",
+      iconColor: "text-blue-600",
     },
     {
       title: "Repuestos",
       description: "Administra el inventario de repuestos",
       icon: Package,
       href: "/spare-parts",
-      color: "text-orange-600",
+      gradient: "from-orange-50 to-orange-100/50",
+      iconColor: "text-orange-600",
     },
     {
       title: "Servicios",
       description: "Gestiona los servicios disponibles",
       icon: Settings,
       href: "/services",
-      color: "text-green-600",
+      gradient: "from-emerald-50 to-emerald-100/50",
+      iconColor: "text-emerald-600",
     },
     {
       title: "Dashboard",
-      description: "Revisa estadisticas de tus vehiculos y turnos",
+      description: "Revisa estadísticas de tus vehículos y turnos",
       icon: ChartNoAxesCombined,
       href: "/mechanic-dashboard",
-      color: "text-yellow-600",
+      gradient: "from-amber-50 to-amber-100/50",
+      iconColor: "text-amber-600",
     },
-  ];
+  ]
 
-  const quickActions =
-    user.userRole === "MECHANIC" ? mechanicQuickActions : userQuickActions;
+  const quickActions = user.userRole === "MECHANIC" ? mechanicQuickActions : userQuickActions
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div className="space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-primary">
-            Hola, <span className="text-primary">{user.fullName}</span>
+    <div className="min-h-screen bg-background p-6 md:p-12">
+      <div className="max-w-7xl mx-auto space-y-12">
+        <div className="space-y-3">
+          <h1 className="text-5xl md:text-6xl font-bold tracking-tight text-foreground">
+            Hola, <span className="text-foreground/90">{user.fullName}</span>
           </h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-xl font-light">
             {user.userRole === "MECHANIC"
               ? "Bienvenido a tu panel de mecánico"
               : "Bienvenido a tu panel de gestión de vehículos"}
           </p>
         </div>
-        {user.userRole === "USER" && (
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Turnos Próximos
-                </CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {stats.upcomingAppointments}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Turnos agendados
-                </p>
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Mis Vehículos
-                </CardTitle>
-                <Car className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.vehicles}</div>
-                <p className="text-xs text-muted-foreground">
-                  Vehículos registrados
-                </p>
-              </CardContent>
-            </Card>
+        {user.userRole === "USER" && (
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="bg-card rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div className="flex items-start justify-between">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Turnos Próximos</p>
+                  <p className="text-5xl font-bold text-foreground">{stats.upcomingAppointments}</p>
+                  <p className="text-sm text-muted-foreground">Turnos agendados</p>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 p-4 rounded-2xl">
+                  <Calendar className="h-7 w-7 text-blue-600" />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
+              <div className="flex items-start justify-between">
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Mis Vehículos</p>
+                  <p className="text-5xl font-bold text-foreground">{stats.vehicles}</p>
+                  <p className="text-sm text-muted-foreground">Vehículos registrados</p>
+                </div>
+                <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 rounded-2xl">
+                  <Car className="h-7 w-7 text-emerald-600" />
+                </div>
+              </div>
+            </div>
           </div>
         )}
-        <div>
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">
-            Accesos Rápidos
-          </h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+        <div className="space-y-6">
+          <h2 className="text-3xl font-semibold text-foreground">Accesos Rápidos</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             {quickActions.map((action) => {
-              const Icon = action.icon;
+              const Icon = action.icon
               return (
-                <Card
+                <button
                   key={action.href}
-                  className="hover:shadow-lg transition-shadow cursor-pointer group"
                   onClick={() => navigate(action.href)}
+                  className="group bg-card rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all duration-300 text-left hover:-translate-y-1 cursor-pointer"
                 >
-                  <CardHeader>
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`p-2 rounded-lg bg-muted group-hover:bg-primary/10 transition-colors`}
-                      >
-                        <Icon className={`h-6 w-6 ${action.color}`} />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg">
-                          {action.title}
-                        </CardTitle>
-                      </div>
+                  <div className="space-y-4">
+                    <div className={`bg-gradient-to-br ${action.gradient} p-4 rounded-2xl w-fit`}>
+                      <Icon className={`h-6 w-6 ${action.iconColor}`} />
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm">
-                      {action.description}
-                    </CardDescription>
-                  </CardContent>
-                </Card>
-              );
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-semibold text-foreground group-hover:text-foreground/90 transition-colors">
+                        {action.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{action.description}</p>
+                    </div>
+                  </div>
+                </button>
+              )
             })}
           </div>
         </div>
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
-                  <UserIcon className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <CardTitle>Mi Perfil</CardTitle>
-                  <CardDescription>
-                    Gestiona tu información personal y configuración
-                  </CardDescription>
-                </div>
+
+        <div className="bg-card rounded-3xl p-8 shadow-sm hover:shadow-md transition-shadow duration-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 p-4 rounded-2xl">
+                <UserIcon className="h-7 w-7 text-slate-600" />
               </div>
-              <Button variant="outline" onClick={() => navigate("/profile")}>
-                Ver Perfil
-              </Button>
+              <div className="space-y-1">
+                <h3 className="text-xl font-semibold text-foreground">Mi Perfil</h3>
+                <p className="text-sm text-muted-foreground">Gestiona tu información personal y configuración</p>
+              </div>
             </div>
-          </CardHeader>
-        </Card>
+            <Button
+              onClick={() => navigate("/profile")}
+              className="rounded-full px-6 py-5 bg-foreground text-background hover:bg-foreground/90 transition-colors shadow-sm"
+            >
+              Ver Perfil
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }
