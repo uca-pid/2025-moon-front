@@ -6,6 +6,8 @@ export interface User {
     address?: string;
     addressLatitude?: number;
     addressLongitude?: number;
+    reviews?: ReviewEnum[];
+    subCategories?: SubCategroriesEnum[];
 }
 
 export interface UpdateUser {

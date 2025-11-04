@@ -8,14 +8,15 @@ import type { Service } from "@/types/services.types"
 import { createAppointment } from "@/services/appointments"
 import { formatDateToYMD } from "@/helpers/parse-date"
 import type { CreateAppointment } from "@/types/appointments.types"
-import type { User } from "@/types/users.types"
+import type { SubCategroriesEnum, User } from "@/types/users.types"
+import { toStars, getSubcategoryCounts, subLabel } from "@/helpers/reviews"
 import { getAllWorkshops } from "@/services/users"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { MultiSelect } from "@/components/MultiSelect"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { WorkshopsMap } from "@/components/WorkshopsMap"
 import { toast } from "sonner"
-import { Calendar, MapPin, Wrench, Clock, CheckCircle, Car, Sparkles } from "lucide-react"
+import { Calendar, MapPin, Wrench, Clock, CheckCircle, Car, Sparkles, Star } from "lucide-react"
 import { getVehiclesOfUser } from "@/services/vehicles"
 import type { Vehicle } from "@/types/vehicles.types"
 import { useNavigate } from "react-router-dom"
@@ -195,10 +196,35 @@ export function Reserve() {
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
                     {workshops.map((workshop) => (
-                      <SelectItem key={workshop.id} value={workshop.id.toString()} className="rounded-lg">
-                        <div className="flex flex-col">
+                      <SelectItem key={workshop.id} value={workshop.id.toString()} className="rounded-lg p-3">
+                        <div className="flex flex-col gap-1">
                           <span className="font-medium">{workshop.workshopName}</span>
                           <span className="text-xs text-gray-500">{workshop.address}</span>
+                          <div className="flex items-center gap-1 text-foreground/80">
+                            {(() => {
+                              const { avg, filled } = toStars(workshop.reviews)
+                              return (
+                                <>
+                                  {[0,1,2,3,4].map((i) => (
+                                    <Star key={i} className={`h-3.5 w-3.5 ${i < filled ? 'text-yellow-500' : 'text-muted-foreground/30'}`} fill={i < filled ? 'currentColor' : 'none'} />
+                                  ))}
+                                  <span className="text-[10px] ml-1">{avg.toFixed(1)}/5</span>
+                                </>
+                              )
+                            })()}
+                          </div>
+                          {(() => {
+                            const counts = getSubcategoryCounts(workshop.subCategories)
+                            const entries = Object.entries(counts) as [SubCategroriesEnum, number][]
+                            if (entries.length === 0) return null
+                            return (
+                              <div className="text-[10px] text-muted-foreground flex flex-wrap gap-x-2 gap-y-0.5">
+                                {entries.map(([k, v]) => (
+                                  <span key={k}>{subLabel(k)}: {v}</span>
+                                ))}
+                              </div>
+                            )
+                          })()}
                         </div>
                       </SelectItem>
                     ))}
