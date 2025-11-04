@@ -2,7 +2,10 @@ import 'leaflet/dist/leaflet.css'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import type { User } from '@/types/users.types'
+import { SubCategroriesEnum } from '@/types/users.types'
+import { Star } from 'lucide-react'
 import { Button } from './ui/button'
+import { getSubcategoryCounts, subLabel, toStars } from '@/helpers/reviews'
 
 const defaultIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
@@ -49,11 +52,36 @@ export const WorkshopsMap = ({ workshops, handleSelectWorkshop }: MapProps) => {
           icon={defaultIcon}
         >
           <Popup>
-            <strong>{w.workshopName}</strong>
-            <br />
-            {w.address}
-            <br />
-            <Button variant="outline" size="sm" onClick={() => handleSelectWorkshop(w.id)}>Seleccionar taller</Button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: 220 }}>
+              <strong>{w.workshopName}</strong>
+              <span style={{ fontSize: 12, color: 'var(--muted-foreground)' }}>{w.address}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                {(() => {
+                  const { avg, filled } = toStars(w.reviews)
+                  return (
+                    <>
+                      {[0,1,2,3,4].map((i) => (
+                        <Star key={i} className={`h-3.5 w-3.5 ${i < filled ? 'text-yellow-500' : 'text-muted-foreground/30'}`} fill={i < filled ? 'currentColor' : 'none'} />
+                      ))}
+                      <span style={{ fontSize: 10, marginLeft: 4 }}>{avg.toFixed(1)}/5</span>
+                    </>
+                  )
+                })()}
+              </div>
+              {(() => {
+                const counts = getSubcategoryCounts(w.subCategories)
+                const entries = Object.entries(counts) as [SubCategroriesEnum, number][]
+                if (entries.length === 0) return null
+                return (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 10, color: 'var(--muted-foreground)' }}>
+                    {entries.map(([k, v]) => (
+                      <span key={k}>{subLabel(k)}: {v}</span>
+                    ))}
+                  </div>
+                )
+              })()}
+              <Button variant="outline" size="sm" onClick={() => handleSelectWorkshop(w.id)}>Seleccionar taller</Button>
+            </div>
           </Popup>
         </Marker>
       ))}
