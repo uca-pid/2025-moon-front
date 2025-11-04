@@ -1,4 +1,4 @@
-import type { ReviewEnum, UpdateUser } from "@/types/users.types";
+import type { ReviewEnum, SubCategroriesEnum, UpdateUser } from "@/types/users.types";
 import { post, put, get } from "@/utils/rest-api";
 
 export const login = (email: string, password: string) => {
@@ -64,8 +64,8 @@ export const getAllWorkshops = () => {
     return get("/users/workshops");
 };
 
-export const reviewMechanic = (mechanicId: number, review: ReviewEnum) => {
-    return post("/users/review", { mechanicId, review });
+export const reviewMechanic = (mechanicId: number, review: ReviewEnum, subCategories?: SubCategroriesEnum[]) => {
+    return post("/users/review", { mechanicId, review, subCategories });
 };
 
 export const getReviews = (mechanicId: number) => {

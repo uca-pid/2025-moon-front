@@ -23,9 +23,18 @@ export enum ReviewEnum {
     EXCELLENT = "excellent",
 }
 
+export enum SubCategroriesEnum {
+    PUNCTUALITY = 'punctuality',
+    QUALITY = 'quality',
+    PRICE = 'price',
+    ATTITUDE = 'attitude',
+    CLARITY = 'clarity',
+}
+
 export interface UserReviewResponse {
     mechanicId: number;
     userId: number;
     review: ReviewEnum;
     appointmentId: number;
+    subCategories?: SubCategroriesEnum[] | null;
 }

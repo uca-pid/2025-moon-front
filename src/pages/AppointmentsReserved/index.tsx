@@ -42,7 +42,7 @@ export function AppointmentsReserved() {
                 >
                   <button
                     onClick={() => toggleExpand(app.id)}
-                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-accent/50 transition-colors"
+                    className="w-full px-6 py-4 flex items-center justify-between hover:bg-accent/50 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
@@ -99,7 +99,7 @@ export function AppointmentsReserved() {
                         <div className="flex flex-wrap gap-2">
                           {app.services?.length > 0 ? (
                             app.services.map((service, index) => (
-                              <Badge key={index} variant="secondary" className="rounded-full px-3 py-1">
+                              <Badge key={index} variant="warning" className="rounded-full px-3 py-1">
                                 {service.name}
                               </Badge>
                             ))

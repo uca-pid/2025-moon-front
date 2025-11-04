@@ -8,7 +8,7 @@ import { Calendar, Clock, Star, User as UserIcon, Wrench } from "lucide-react";
 import { getUserReviews, reviewMechanic, getUserById } from "@/services/users";
 import { getAppointmentById } from "@/services/appointments";
 import type { UserReviewResponse, User } from "@/types/users.types";
-import { ReviewEnum } from "@/types/users.types";
+import { ReviewEnum, SubCategroriesEnum } from "@/types/users.types";
 import type { Appointment } from "@/types/appointments.types";
 
 interface EnrichedReview {
@@ -38,6 +38,8 @@ export function ReviewMechanic() {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
     const hasFetchedRef = useRef(false);
+    const [selectedReviews, setSelectedReviews] = useState<Record<number, ReviewEnum | null>>({});
+    const [selectedSubcategories, setSelectedSubcategories] = useState<Record<number, Set<SubCategroriesEnum>>>({});
 
     const loadReviews = async (initial = false) => {
         if (initial) setIsLoading(true);
@@ -92,10 +94,43 @@ export function ReviewMechanic() {
         return [p, h];
     }, [enrichedReviews]);
 
-    const handleRate = async (mechanicId: number, review: ReviewEnum) => {
+    const selectReview = (appointmentId: number, review: ReviewEnum) => {
+        setSelectedReviews((prev) => {
+            const current = prev[appointmentId] ?? null;
+            const nextValue = current === review ? null : review;
+            return { ...prev, [appointmentId]: nextValue };
+        });
+    };
+
+    const toggleSubcategory = (appointmentId: number, sub: SubCategroriesEnum) => {
+        setSelectedSubcategories((prev) => {
+            const current = new Set(prev[appointmentId] ?? []);
+            if (current.has(sub)) {
+                current.delete(sub);
+            } else {
+                if (current.size >= 3) {
+                    return prev; // do not allow more than 3
+                }
+                current.add(sub);
+            }
+            return { ...prev, [appointmentId]: current };
+        });
+    };
+
+    const handleSubmit = async (appointmentId: number, mechanicId: number) => {
+        const review = selectedReviews[appointmentId] ?? null;
+        if (!review) return;
+        const subsSet = selectedSubcategories[appointmentId];
+        const subCategories = subsSet && subsSet.size > 0 ? Array.from(subsSet) : undefined;
         setIsRefreshing(true);
         try {
-            await reviewMechanic(mechanicId, review);
+            await reviewMechanic(mechanicId, review, subCategories);
+            setSelectedReviews((prev) => ({ ...prev, [appointmentId]: null }));
+            setSelectedSubcategories((prev) => {
+                const copy = { ...prev };
+                delete copy[appointmentId];
+                return copy;
+            });
             await loadReviews();
         } finally {
             setIsRefreshing(false);
@@ -206,43 +241,95 @@ export function ReviewMechanic() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-2 md:gap-3">
-                                                <Button
-                                                    variant="destructive"
-                                                    className="rounded-2xl"
-                                                    onClick={() =>
-                                                        handleRate(
-                                                            base.mechanicId,
-                                                            ReviewEnum.BAD
-                                                        )
-                                                    }
-                                                >
-                                                    MALO
-                                                </Button>
-                                                <Button
-                                                    variant="foreground"
-                                                    className="rounded-2xl"
-                                                    onClick={() =>
-                                                        handleRate(
-                                                            base.mechanicId,
-                                                            ReviewEnum.GOOD
-                                                        )
-                                                    }
-                                                >
-                                                    BUENO
-                                                </Button>
-                                                <Button
-                                                    variant="success"
-                                                    className="rounded-2xl"
-                                                    onClick={() =>
-                                                        handleRate(
-                                                            base.mechanicId,
-                                                            ReviewEnum.EXCELLENT
-                                                        )
-                                                    }
-                                                >
-                                                    EXCELENTE
-                                                </Button>
+                                            <div className="flex flex-col gap-3 w-full md:w-auto">
+                                                <div className="flex items-center gap-2 md:gap-3">
+                                                    <Button
+                                                        variant={selectedReviews[base.appointmentId] === ReviewEnum.BAD ? "destructive" : "outline"}
+                                                        className="rounded-2xl"
+                                                        onClick={() =>
+                                                            selectReview(base.appointmentId, ReviewEnum.BAD)
+                                                        }
+                                                    >
+                                                        MALO
+                                                    </Button>
+                                                    <Button
+                                                        variant={selectedReviews[base.appointmentId] === ReviewEnum.GOOD ? "foreground" : "outline"}
+                                                        className="rounded-2xl"
+                                                        onClick={() =>
+                                                            selectReview(base.appointmentId, ReviewEnum.GOOD)
+                                                        }
+                                                    >
+                                                        BUENO
+                                                    </Button>
+                                                    <Button
+                                                        variant={selectedReviews[base.appointmentId] === ReviewEnum.EXCELLENT ? "success" : "outline"}
+                                                        className="rounded-2xl"
+                                                        onClick={() =>
+                                                            selectReview(base.appointmentId, ReviewEnum.EXCELLENT)
+                                                        }
+                                                    >
+                                                        EXCELENTE
+                                                    </Button>
+                                                </div>
+
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    {(
+                                                        [
+                                                            SubCategroriesEnum.PUNCTUALITY,
+                                                            SubCategroriesEnum.QUALITY,
+                                                            SubCategroriesEnum.PRICE,
+                                                            SubCategroriesEnum.ATTITUDE,
+                                                            SubCategroriesEnum.CLARITY,
+                                                        ] as SubCategroriesEnum[]
+                                                    ).map((sub) => {
+                                                        const selected = selectedSubcategories[base.appointmentId]?.has(sub);
+                                                        const selectedCount = selectedSubcategories[base.appointmentId]?.size ?? 0;
+                                                        const limitReached = selectedCount >= 3;
+                                                        type BadgeVariant = "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "purple";
+                                                        const variant: BadgeVariant = selected
+                                                            ? (sub === SubCategroriesEnum.PUNCTUALITY
+                                                                ? "purple"
+                                                                : sub === SubCategroriesEnum.QUALITY
+                                                                ? "purple"
+                                                                : sub === SubCategroriesEnum.PRICE
+                                                                ? "purple"
+                                                                : sub === SubCategroriesEnum.ATTITUDE
+                                                                ? "purple"
+                                                                : "purple")
+                                                            : "outline";
+                                                        const label =
+                                                            sub === SubCategroriesEnum.PUNCTUALITY
+                                                                ? "Puntualidad"
+                                                                : sub === SubCategroriesEnum.QUALITY
+                                                                ? "Calidad"
+                                                                : sub === SubCategroriesEnum.PRICE
+                                                                ? "Precio"
+                                                                : sub === SubCategroriesEnum.ATTITUDE
+                                                                ? "Actitud"
+                                                                : "Claridad";
+                                                        return (
+                                                            <Badge
+                                                                key={sub}
+                                                                variant={variant}
+                                                                className={`rounded-full cursor-pointer select-none ${!selected && limitReached ? "pointer-events-none opacity-50" : ""}`}
+                                                                onClick={() => toggleSubcategory(base.appointmentId, sub)}
+                                                            >
+                                                                {label}
+                                                            </Badge>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="default"
+                                                        className="rounded-2xl"
+                                                        disabled={!selectedReviews[base.appointmentId]}
+                                                        onClick={() => handleSubmit(base.appointmentId, base.mechanicId)}
+                                                    >
+                                                        Subir Review
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -337,7 +424,7 @@ export function ReviewMechanic() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center">
+                                            <div className="flex items-center gap-3">
                                                 <Badge
                                                     className="rounded-full px-3 py-1 text-sm"
                                                     variant={
@@ -354,6 +441,27 @@ export function ReviewMechanic() {
                                                         base.review
                                                     )}
                                                 </Badge>
+                                                {Array.isArray(base.subCategories) && base.subCategories.length > 0 ? (
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        {base.subCategories.map((sub) => {
+                                                            const label =
+                                                                sub === SubCategroriesEnum.PUNCTUALITY
+                                                                    ? "Puntualidad"
+                                                                    : sub === SubCategroriesEnum.QUALITY
+                                                                    ? "Calidad"
+                                                                    : sub === SubCategroriesEnum.PRICE
+                                                                    ? "Precio"
+                                                                    : sub === SubCategroriesEnum.ATTITUDE
+                                                                    ? "Actitud"
+                                                                    : "Claridad";
+                                                            return (
+                                                                <Badge key={sub} variant="purple" className="rounded-full">
+                                                                    {label}
+                                                                </Badge>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                ) : null}
                                             </div>
                                         </div>
                                     </CardContent>

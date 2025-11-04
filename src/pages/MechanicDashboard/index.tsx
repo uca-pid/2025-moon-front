@@ -32,7 +32,7 @@ export function MechanicDashboard() {
       try {
         const [servicesData, appointmentsData] = await Promise.all([
           getRequestedServicesByMechanicId(),
-          getNextAppointmentsOfMechanic("future"),
+          getNextAppointmentsOfMechanic(),
         ])
         setServices(servicesData)
         setAppointments(appointmentsData)
