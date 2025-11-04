@@ -280,7 +280,7 @@ export const AppSidebar = ({ children }: { children?: React.ReactNode }) => {
                 open={openNotifications}
                 onOpenChange={setOpenNotifications}
             >
-                <DialogContent className="max-w-md text-foreground">
+                <DialogContent className="max-w-md max-h-[75vh] overflow-y-auto text-foreground">
                     <DialogHeader className="flex flex-row items-center justify-between p-3">
                         <DialogTitle>Notificaciones</DialogTitle>
                         {notifications.some((n: Notification) => !n.isRead) && (

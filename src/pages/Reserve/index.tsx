@@ -119,7 +119,7 @@ export function Reserve() {
 
   return (
     <Container>
-      <div className="min-h-screen py-12">
+      <div className="min-h-screen">
         <div className="mb-12">
           <div className="flex items-center gap-3 mb-3">
             <div className="p-2.5 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10">
@@ -162,7 +162,7 @@ export function Reserve() {
               </div>
               {vehicles.length > 0 ? (
                 <Select value={selectedVehicle} onValueChange={(value) => setSelectedVehicle(value)}>
-                  <SelectTrigger className="w-full h-12 rounded-xl border-gray-200 hover:border-gray-300 transition-colors">
+                  <SelectTrigger className="w-full rounded-xl border-gray-200 hover:border-gray-300 transition-colors" style={{ padding: "25px" }}>
                     <SelectValue placeholder="Selecciona un vehículo" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -190,7 +190,7 @@ export function Reserve() {
               </div>
               <div className="flex gap-3 items-center">
                 <Select value={workshop} onValueChange={(value) => setWorkshop(value)}>
-                  <SelectTrigger className="w-full h-12 rounded-xl border-gray-200 hover:border-gray-300 transition-colors">
+                  <SelectTrigger className="w-full rounded-xl border-gray-200 hover:border-gray-300 transition-colors" style={{ padding: "25px" }}>
                     <SelectValue placeholder="Selecciona un taller" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">

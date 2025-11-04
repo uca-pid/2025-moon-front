@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, User as UserIcon, Wrench } from "lucide-react";
+import { Calendar, Clock, Star, User as UserIcon, Wrench } from "lucide-react";
 import { getUserReviews, reviewMechanic, getUserById } from "@/services/users";
 import { getAppointmentById } from "@/services/appointments";
 import type { UserReviewResponse, User } from "@/types/users.types";
@@ -105,14 +105,17 @@ export function ReviewMechanic() {
     return (
         <Container>
             <div className="max-w-4xl space-y-8">
-                <div className="space-y-2">
-                    <h1 className="text-4xl font-bold tracking-tight text-foreground">
-                        Calificar mecánicos
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Deja tu reseña de cada turno y mira tu historial.
-                    </p>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2.5 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10">
+                  <Star className="h-6 w-6 text-yellow-500" />
                 </div>
+                <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+                  Calificar mecánicos
+                </h1>
+              </div>
+                    <p className="text-muted-foreground">
+                    Deja tu reseña de cada turno y mira tu historial.
+                </p>
 
                 <section className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -185,7 +188,7 @@ export function ReviewMechanic() {
                                                             (s) => (
                                                                 <Badge
                                                                     key={s.id}
-                                                                    variant="outline"
+                                                                    variant="warning"
                                                                     className="rounded-full"
                                                                 >
                                                                     {s.name}
@@ -316,7 +319,7 @@ export function ReviewMechanic() {
                                                             (s) => (
                                                                 <Badge
                                                                     key={s.id}
-                                                                    variant="outline"
+                                                                    variant="warning"
                                                                     className="rounded-full"
                                                                 >
                                                                     {s.name}
