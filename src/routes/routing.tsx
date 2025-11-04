@@ -14,42 +14,61 @@ import { AppointmentsReserved } from "@/pages/AppointmentsReserved";
 import { SpareParts } from "@/pages/SpareParts";
 import { Services } from "@/pages/Services";
 import { Vehicles } from "@/pages/Vehicles";
-import { MechanicDashboard } from '@/pages/MechanicDashboard'
+import { MechanicDashboard } from "@/pages/MechanicDashboard";
 import { UserDashboard } from "@/pages/UserDashboard";
+import { ReviewMechanic } from "@/pages/ReviewMechanic";
 
 export const Routing = () => {
-  return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/password-recovery" element={<PasswordRecovery />} />
-      <Route path="/change-password" element={<ChangePassword />} />
+    return (
+        <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/password-recovery" element={<PasswordRecovery />} />
+            <Route path="/change-password" element={<ChangePassword />} />
 
-      <Route element={<ProtectedResolver redirectPath="/login" />}>
-        <Route path="/home" element={<Home />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route
-          element={<RoleResolver role={UserRoles.USER} redirectPath="/login" />}
-        >
-          <Route path="/vehicles" element={<Vehicles />} />
-          <Route path="/reserve" element={<Reserve />} />
-          <Route path="/appointments" element={<AppointmentsReserved />} />
-          <Route path="/user-dashboard" element={<UserDashboard />} />
-        </Route>
-        <Route
-          element={
-            <RoleResolver role={UserRoles.MECHANIC} redirectPath="/login" />
-          }
-        >
-          <Route path='/shifts' element={<Shifts />} />
-          <Route path='/spare-parts' element={<SpareParts />} />
-          <Route path='/services' element={<Services />} />
-          <Route path='/mechanic-dashboard' element={<MechanicDashboard />} />
-        </Route>
-      </Route>
+            <Route element={<ProtectedResolver redirectPath="/login" />}>
+                <Route path="/home" element={<Home />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route
+                    element={
+                        <RoleResolver
+                            role={UserRoles.USER}
+                            redirectPath="/login"
+                        />
+                    }
+                >
+                    <Route path="/vehicles" element={<Vehicles />} />
+                    <Route path="/reserve" element={<Reserve />} />
+                    <Route
+                        path="/appointments"
+                        element={<AppointmentsReserved />}
+                    />
+                    <Route path="/user-dashboard" element={<UserDashboard />} />
+                    <Route
+                        path="/review-mechanic"
+                        element={<ReviewMechanic />}
+                    />
+                </Route>
+                <Route
+                    element={
+                        <RoleResolver
+                            role={UserRoles.MECHANIC}
+                            redirectPath="/login"
+                        />
+                    }
+                >
+                    <Route path="/shifts" element={<Shifts />} />
+                    <Route path="/spare-parts" element={<SpareParts />} />
+                    <Route path="/services" element={<Services />} />
+                    <Route
+                        path="/mechanic-dashboard"
+                        element={<MechanicDashboard />}
+                    />
+                </Route>
+            </Route>
 
-      <Route path="*" element={<div>404 - Not Found</div>} />
-    </Routes>
-  );
+            <Route path="*" element={<div>404 - Not Found</div>} />
+        </Routes>
+    );
 };

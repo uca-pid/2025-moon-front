@@ -33,6 +33,7 @@ export const MultiSelect = ({ options, selected, setSelected, placeholder, hasIn
         <Button
           variant="outline"
           className="w-full justify-between"
+          style={{ padding: "25px" }}
         >
           {selected.length > 0
             ? selected.length === 1 ? options.find(option => option.value === selected[0])?.label : `${selected.length} seleccionados`
