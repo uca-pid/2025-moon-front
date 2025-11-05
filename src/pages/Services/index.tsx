@@ -39,7 +39,7 @@ import { CustomTable } from '@/components/CustomTable'
 import { CustomDialog } from '@/components/CustomDialog'
 import { Label } from '@/components/ui/label'
 import { MultiSelect } from '@/components/MultiSelect'
-import { getSpareParts } from '@/services/spare-parts'
+import { getSpareParts, create as createSparePart } from '@/services/spare-parts'
 
 export function Services() {
   const [isOpen, setIsOpen] = useState(false)
@@ -158,17 +158,28 @@ export function Services() {
   }, [])
 
   useEffect(() => {
-    setEditingService({
-      name: '',
-      price: 0,
-      id: 0,
-      ...editingService,
-      spareParts: selectedSpareParts.map((sp) => ({
-        quantity:
-          editingService?.spareParts.find((s) => s.sparePartId === sp.id)
-            ?.quantity || 1,
-        sparePartId: sp.id || 1,
-      })),
+    setEditingService((current) => {
+      const base = current ?? { name: '', price: 0, id: 0, spareParts: [] }
+
+      const nextSpareParts = selectedSpareParts
+        .filter((sp) => typeof sp.id === 'number')
+        .map((sp) => ({
+          quantity:
+            base?.spareParts.find((s) => s.sparePartId === sp.id)?.quantity || 1,
+          sparePartId: Number(sp.id),
+        }))
+
+      const isSameLength = (base.spareParts?.length || 0) === nextSpareParts.length
+      const isSameValues = isSameLength
+        ? base.spareParts.every((s, i) =>
+            s.sparePartId === nextSpareParts[i].sparePartId &&
+            s.quantity === nextSpareParts[i].quantity
+          )
+        : false
+
+      if (isSameValues) return current
+
+      return { ...base, spareParts: nextSpareParts }
     })
   }, [selectedSpareParts])
 
@@ -213,7 +224,7 @@ export function Services() {
               className='rounded-xl'
             />
           </div>
-          <div className='space-y-2'>
+          <div className='space-y-2 w-full'>
             <Label htmlFor='price'>Repuestos</Label>
             {spareParts.length > 0 ? (
               <MultiSelect
@@ -233,7 +244,14 @@ export function Services() {
                       .filter((sp) => sp !== undefined)
                   )
                 }}
-                placeholder='Selecciona servicios'
+                hasInput={true}
+                placeholder='Selecciona repuestos'
+                onCreate={async (value) => {
+                  const created = (await createSparePart({ name: value, stock: 0 })) as SparePartData
+                  if (!created || typeof created.id !== 'number') return
+                  setSpareParts((prev) => [...prev, created])
+                  setSelectedSpareParts((prev) => [...prev, created])
+                }}
               />
             ) : (
               <div>
