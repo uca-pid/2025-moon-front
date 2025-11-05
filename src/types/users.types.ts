@@ -40,3 +40,8 @@ export interface UserReviewResponse {
     appointmentId: number;
     subCategories?: SubCategroriesEnum[] | null;
 }
+
+export interface MechanicReview {
+    reviews?: ReviewEnum[];
+    subCategories?: SubCategroriesEnum[];
+}

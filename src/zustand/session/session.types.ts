@@ -7,7 +7,7 @@ export const UserRoles = {
 export type UserRole = (typeof UserRoles)[keyof typeof UserRoles]
 
 export interface User {
-  id: string
+  id: number
   token: string
   fullName: string
   email: string
@@ -29,7 +29,7 @@ export interface SessionState {
 }
 
 export const userInitialState: User = {
-  id: '',
+  id: 0,
   token: '',
   fullName: '',
   email: '',
