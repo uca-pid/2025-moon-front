@@ -10,6 +10,8 @@ import { getAppointmentById } from "@/services/appointments";
 import type { UserReviewResponse, User } from "@/types/users.types";
 import { ReviewEnum, SubCategroriesEnum } from "@/types/users.types";
 import type { Appointment } from "@/types/appointments.types";
+import { CustomPagination } from "@/components/CustomPagination";
+import type { PaginatedQueryDto } from "@/types/paginated.types";
 
 interface EnrichedReview {
     base: UserReviewResponse;
@@ -40,6 +42,13 @@ export function ReviewMechanic() {
     const hasFetchedRef = useRef(false);
     const [selectedReviews, setSelectedReviews] = useState<Record<number, ReviewEnum | null>>({});
     const [selectedSubcategories, setSelectedSubcategories] = useState<Record<number, Set<SubCategroriesEnum>>>({});
+    const [historyPagination, setHistoryPagination] = useState<PaginatedQueryDto>({
+        page: 1,
+        pageSize: 3,
+        search: "",
+        orderBy: "",
+        orderDir: "",
+    });
 
     const loadReviews = async (initial = false) => {
         if (initial) setIsLoading(true);
@@ -93,6 +102,35 @@ export function ReviewMechanic() {
             .sort((a, b) => b.base.appointmentId - a.base.appointmentId);
         return [p, h];
     }, [enrichedReviews]);
+
+    const historyTotalPages = useMemo(() => {
+        const total = Math.ceil((history.length || 0) / (historyPagination.pageSize || 1));
+        return Math.max(1, total);
+    }, [history.length, historyPagination.pageSize]);
+
+    const pagedHistory = useMemo(() => {
+        if (history.length === 0) return [];
+        const total = Math.ceil(history.length / historyPagination.pageSize) || 1;
+        const currentPage = Math.min(historyPagination.page, total);
+        const start = (currentPage - 1) * historyPagination.pageSize;
+        return history.slice(start, start + historyPagination.pageSize);
+    }, [history, historyPagination]);
+
+    useEffect(() => {
+        const total = Math.ceil((history.length || 0) / (historyPagination.pageSize || 1)) || 1;
+        if (historyPagination.page > total) {
+            setHistoryPagination((prev) => ({ ...prev, page: total }));
+        }
+    }, [history.length, historyPagination.pageSize, historyPagination.page]);
+
+    const goToPage = (page: number) => {
+        const total = Math.ceil((history.length || 0) / (historyPagination.pageSize || 1)) || 1;
+        const clamped = Math.max(1, Math.min(total, page));
+        setHistoryPagination((prev) => ({ ...prev, page: clamped }));
+    };
+
+    const goPrev = () => goToPage(historyPagination.page - 1);
+    const goNext = () => goToPage(historyPagination.page + 1);
 
     const selectReview = (appointmentId: number, review: ReviewEnum) => {
         setSelectedReviews((prev) => {
@@ -356,7 +394,7 @@ export function ReviewMechanic() {
                         </div>
                     ) : (
                         <div className="space-y-3">
-                            {history.map(({ base, appointment, mechanic }) => (
+                            {pagedHistory.map(({ base, appointment, mechanic }) => (
                                 <Card
                                     key={base.appointmentId}
                                     className="rounded-3xl bg-card shadow-sm"
@@ -467,6 +505,19 @@ export function ReviewMechanic() {
                                     </CardContent>
                                 </Card>
                             ))}
+                            {historyTotalPages > 1 ? (
+                                <div className="pt-2">
+                                    <CustomPagination
+                                        goPrev={goPrev}
+                                        isFirstPage={historyPagination.page === 1}
+                                        totalPages={historyTotalPages}
+                                        pagination={historyPagination}
+                                        goToPage={goToPage}
+                                        goNext={goNext}
+                                        isLastPage={historyPagination.page >= historyTotalPages}
+                                    />
+                                </div>
+                            ) : null}
                         </div>
                     )}
                 </section>
