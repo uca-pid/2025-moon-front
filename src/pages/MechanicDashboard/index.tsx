@@ -1,7 +1,13 @@
-import { useEffect, useState } from "react"
-import { Container } from "@/components/Container"
-import { getNextAppointmentsOfMechanic } from "@/services/appointments"
-import { getRequestedServicesByMechanicId } from "@/services/services"
+import { useEffect, useState } from "react";
+import { Container } from "@/components/Container";
+import {
+  getAppointmentRangeByWorkshop,
+  getNextAppointmentsOfMechanic,
+} from "@/services/appointments";
+import {
+  getRequestedServicesByMechanicId,
+  getTopGrowingServices,
+} from "@/services/services";
 import {
   PieChart,
   Pie,
@@ -16,37 +22,99 @@ import {
   BarChart,
   Bar,
   type TooltipProps,
-} from "recharts"
-import { Wrench, Package, Clock, Star } from "lucide-react"
-import type { Service, SparePartService } from "@/types/services.types"
-import type { Appointment } from "@/types/appointments.types"
-import { getReviews } from "@/services/users"
-import { useStore } from "@/zustand/store"
-import type { MechanicReview } from "@/types/users.types"
-import { toStars, getSubcategoryCounts, subLabel } from "@/helpers/reviews"
-import { ReviewEnum, SubCategroriesEnum } from "@/types/users.types"
+} from "recharts";
+import { Wrench, Package, Clock, Star } from "lucide-react";
+import type { Service, SparePartService } from "@/types/services.types";
+import type { Appointment } from "@/types/appointments.types";
+import { getReviews } from "@/services/users";
+import { useStore } from "@/zustand/store";
+import type { MechanicReview } from "@/types/users.types";
+import { toStars, getSubcategoryCounts, subLabel } from "@/helpers/reviews";
+import { ReviewEnum, SubCategroriesEnum } from "@/types/users.types";
 
-const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
-  if (!active || !payload || !payload.length) return null
+export const ServiceGrowthTooltip = ({
+  active,
+  payload,
+}: TooltipProps<number, string>) => {
+  if (!active || !payload || !payload.length) return null;
 
   type PayloadType = {
-    value?: number
-    name?: string
-    fill?: string
-    payload?: { name?: string; fill?: string; total?: number }
-  }
+    payload?: {
+      serviceName?: string;
+      growth?: number;
+      currentCount?: number;
+      previousCount?: number;
+    };
+    fill?: string;
+  };
 
-  const data = payload[0] as unknown as PayloadType
-  const total = payload.reduce((acc, curr) => acc + (curr.value ?? 0), 0)
-  const value = data.value ?? 0
-  const percentage = total > 0 ? (((value) / total) * 100).toFixed(1) : 0
-  const title = data.payload?.name ?? data.name ?? ""
-  const color = data.payload?.fill ?? data.fill ?? "hsl(var(--muted-foreground))"
+  const data = payload[0] as unknown as PayloadType;
+  const serviceName = data.payload?.serviceName ?? "Servicio";
+  const growth = data.payload?.growth ?? 0;
+  const current = data.payload?.currentCount ?? 0;
+  const previous = data.payload?.previousCount ?? 0;
+  const color = data.fill ?? "hsl(var(--muted-foreground))";
+
+  const growthColor =
+    growth > 0
+      ? "text-green-500"
+      : growth < 0
+      ? "text-red-500"
+      : "text-muted-foreground";
+
+  const growthSymbol = growth > 0 ? "▲" : growth < 0 ? "▼" : "—";
 
   return (
     <div className="bg-card/95 backdrop-blur-sm border border-border/50 rounded-2xl p-4 shadow-xl">
       <div className="flex items-center gap-2 mb-2">
-        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }} />
+        <div
+          className="w-3 h-3 rounded-full"
+          style={{ backgroundColor: color }}
+        />
+        <p className="font-semibold text-foreground">{serviceName}</p>
+      </div>
+      <div className="space-y-1 text-sm">
+        <p className="text-muted-foreground">
+          Turnos de este mes:{" "}
+          <span className="font-medium text-foreground">{current}</span>
+        </p>
+        <p className="text-muted-foreground">
+          Turnos del mes pasado:{" "}
+          <span className="font-medium text-foreground">{previous}</span>
+        </p>
+        <p className={`font-medium ${growthColor}`}>
+          {growthSymbol} {growth.toFixed(1)}%
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
+  if (!active || !payload || !payload.length) return null;
+
+  type PayloadType = {
+    value?: number;
+    name?: string;
+    fill?: string;
+    payload?: { name?: string; fill?: string; total?: number };
+  };
+
+  const data = payload[0] as unknown as PayloadType;
+  const total = payload.reduce((acc, curr) => acc + (curr.value ?? 0), 0);
+  const value = data.value ?? 0;
+  const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+  const title = data.payload?.name ?? data.name ?? "";
+  const color =
+    data.payload?.fill ?? data.fill ?? "hsl(var(--muted-foreground))";
+
+  return (
+    <div className="bg-card/95 backdrop-blur-sm border border-border/50 rounded-2xl p-4 shadow-xl">
+      <div className="flex items-center gap-2 mb-2">
+        <div
+          className="w-3 h-3 rounded-full"
+          style={{ backgroundColor: color }}
+        />
         <p className="font-semibold text-foreground">{title}</p>
       </div>
       <div className="space-y-1 text-sm">
@@ -54,25 +122,40 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
           Cantidad: <span className="font-medium text-foreground">{value}</span>
         </p>
         <p className="text-muted-foreground">
-          Porcentaje: <span className="font-medium text-foreground">{percentage}%</span>
+          Porcentaje:{" "}
+          <span className="font-medium text-foreground">{percentage}%</span>
         </p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-const CustomLegend = ({ data, colors }: { data: { name: string; value: number }[]; colors: string[] }) => {
+const CustomLegend = ({
+  data,
+  colors,
+}: {
+  data: { name: string; value: number }[];
+  colors: string[];
+}) => {
   return (
     <div className="flex flex-wrap gap-3 justify-center mt-4">
       {data.map((entry, index) => (
-        <div key={`legend-${index}`} className="flex items-center gap-2 px-3 py-1.5 bg-accent/30 rounded-full">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: colors[index % colors.length] }} />
-          <span className="text-xs font-medium text-foreground">{entry.name}</span>
+        <div
+          key={`legend-${index}`}
+          className="flex items-center gap-2 px-3 py-1.5 bg-accent/30 rounded-full"
+        >
+          <div
+            className="w-2.5 h-2.5 rounded-full"
+            style={{ backgroundColor: colors[index % colors.length] }}
+          />
+          <span className="text-xs font-medium text-foreground">
+            {entry.name}
+          </span>
         </div>
       ))}
     </div>
-  )
-}
+  );
+};
 
 const renderCenterLabel = (total: number, label: string) => {
   return (
@@ -84,140 +167,213 @@ const renderCenterLabel = (total: number, label: string) => {
         {label}
       </tspan>
     </text>
-  )
-}
+  );
+};
 
-type DashboardSection = "services" | "stock" | "reviews" | "hours"
+type DashboardSection = "services" | "stock" | "reviews" | "hours";
 
 export const MechanicDashboard = () => {
-  const { user } = useStore()
-  const [services, setServices] = useState<(Service & { appointmentsCount: number })[]>([])
-  const [appointments, setAppointments] = useState<Appointment[]>([])
-  const [reviews, setReviews] = useState<MechanicReview[]>([])
-  const [loading, setLoading] = useState(true)
+  const { user } = useStore();
+  const [services, setServices] = useState<
+    (Service & { appointmentsCount: number })[]
+  >([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [reviews, setReviews] = useState<MechanicReview[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [visibleSections, setVisibleSections] = useState<Set<DashboardSection>>(
-    new Set(["services", "stock", "reviews", "hours"]),
-  )
+    new Set(["services", "stock", "reviews", "hours"])
+  );
+  const [serviceGrowth, setServiceGrowth] = useState<
+    {
+      serviceName: string;
+      growth: number;
+      currentCount: number;
+      previousCount: number;
+    }[]
+  >([]);
+  const [appointmentTrends, setAppointmentTrends] = useState<
+    { date: string; count: number }[]
+  >([]);
+  const [timeRange, setTimeRange] = useState<"week" | "two_weeks" | "month">(
+    "week"
+  );
 
   const toggleSection = (section: DashboardSection) => {
     setVisibleSections((prev) => {
-      const newSet = new Set(prev)
+      const newSet = new Set(prev);
       if (newSet.has(section)) {
-        newSet.delete(section)
+        newSet.delete(section);
       } else {
-        newSet.add(section)
+        newSet.add(section);
       }
-      return newSet
-    })
-  }
+      return newSet;
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
+      setLoading(true);
       try {
-        const [servicesData, appointmentsData, reviewsData] = await Promise.all([
-          getRequestedServicesByMechanicId(),
-          getNextAppointmentsOfMechanic(),
-          getReviews(user.id),
-        ])
-        setServices(servicesData)
-        setAppointments(appointmentsData)
-        setReviews(reviewsData)
+        const [servicesData, appointmentsData, reviewsData, growthData] =
+          await Promise.all([
+            getRequestedServicesByMechanicId(),
+            getNextAppointmentsOfMechanic(),
+            getReviews(user.id),
+            getTopGrowingServices(30),
+          ]);
+        setServices(servicesData);
+        setAppointments(appointmentsData);
+        setReviews(reviewsData);
+        setServiceGrowth(growthData);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error)
+        console.error("Error fetching dashboard data:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchData()
-  }, [user.id])
+    };
+    fetchData();
+  }, [user.id]);
+
+  useEffect(() => {
+    const fetchAppointmentTrends = async () => {
+      try {
+        const trendsData = await getAppointmentRangeByWorkshop(timeRange);
+        setAppointmentTrends(trendsData);
+      } catch (error) {
+        console.error("Error fetching appointment trends:", error);
+      }
+    };
+    fetchAppointmentTrends();
+  }, [timeRange]);
 
   const servicesChartData = services
-    .filter((service) => service.appointmentsCount && service.appointmentsCount > 0)
+    .filter(
+      (service) => service.appointmentsCount && service.appointmentsCount > 0
+    )
     .map((service) => ({
       name: service.name,
       value: service.appointmentsCount,
     }))
-    .sort((a, b) => b.value - a.value)
+    .sort((a, b) => b.value - a.value);
 
   const sparePartsConsumption = services
-    .reduce(
-      (acc, service) => {
-        service.spareParts.forEach((sparePart: SparePartService) => {
-          const totalConsumption = sparePart.quantity * service.appointmentsCount
-          const existing = acc.find((item) => item.name === sparePart.sparePartName)
-          if (existing) {
-            existing.value += totalConsumption
-          } else {
-            acc.push({
-              name: sparePart.sparePartName ?? "",
-              value: totalConsumption,
-            })
-          }
-        })
-        return acc
-      },
-      [] as { name: string; value: number }[],
-    )
-    .sort((a, b) => b.value - a.value)
+    .reduce((acc, service) => {
+      service.spareParts.forEach((sparePart: SparePartService) => {
+        const totalConsumption = sparePart.quantity * service.appointmentsCount;
+        const existing = acc.find(
+          (item) => item.name === sparePart.sparePartName
+        );
+        if (existing) {
+          existing.value += totalConsumption;
+        } else {
+          acc.push({
+            name: sparePart.sparePartName ?? "",
+            value: totalConsumption,
+          });
+        }
+      });
+      return acc;
+    }, [] as { name: string; value: number }[])
+    .sort((a, b) => b.value - a.value);
 
-  const timeSlots = []
+  const timeSlots = [];
   for (let hour = 8; hour <= 17; hour++) {
-    timeSlots.push(`${hour.toString().padStart(2, "0")}:00`)
+    timeSlots.push(`${hour.toString().padStart(2, "0")}:00`);
     if (hour < 17) {
-      timeSlots.push(`${hour.toString().padStart(2, "0")}:30`)
+      timeSlots.push(`${hour.toString().padStart(2, "0")}:30`);
     }
   }
 
   const busyHoursData = timeSlots.map((slot) => {
     const count = appointments.filter((apt) => {
-      const aptTime = apt.time.substring(0, 5)
-      return aptTime === slot
-    }).length
+      const aptTime = apt.time.substring(0, 5);
+      return aptTime === slot;
+    }).length;
     return {
       time: slot,
       appointments: count,
-    }
-  })
+    };
+  });
 
-  const totalServices = servicesChartData.reduce((acc, item) => acc + item.value, 0)
-  const servicesWithTotal = servicesChartData.map((item) => ({ ...item, total: totalServices }))
+  const totalServices = servicesChartData.reduce(
+    (acc, item) => acc + item.value,
+    0
+  );
+  const servicesWithTotal = servicesChartData.map((item) => ({
+    ...item,
+    total: totalServices,
+  }));
 
   const reviewsAggregate: MechanicReview | undefined = Array.isArray(reviews)
     ? reviews[0]
-    : (reviews as unknown as MechanicReview)
-  const allReviews: ReviewEnum[] = reviewsAggregate?.reviews ?? []
-  const allSubCategories: SubCategroriesEnum[] = reviewsAggregate?.subCategories ?? []
+    : (reviews as unknown as MechanicReview);
+  const allReviews: ReviewEnum[] = reviewsAggregate?.reviews ?? [];
+  const allSubCategories: SubCategroriesEnum[] =
+    reviewsAggregate?.subCategories ?? [];
 
   const reviewCounts = {
-    [ReviewEnum.EXCELLENT]: allReviews.filter((r) => r === ReviewEnum.EXCELLENT).length,
+    [ReviewEnum.EXCELLENT]: allReviews.filter((r) => r === ReviewEnum.EXCELLENT)
+      .length,
     [ReviewEnum.GOOD]: allReviews.filter((r) => r === ReviewEnum.GOOD).length,
     [ReviewEnum.BAD]: allReviews.filter((r) => r === ReviewEnum.BAD).length,
-  }
+  };
 
   const reviewPieData = [
-    { key: ReviewEnum.EXCELLENT, name: "Excelente", value: reviewCounts[ReviewEnum.EXCELLENT], fill: "#22c55e" },
-    { key: ReviewEnum.GOOD, name: "Buena", value: reviewCounts[ReviewEnum.GOOD], fill: "#3b82f6" },
-    { key: ReviewEnum.BAD, name: "Mala", value: reviewCounts[ReviewEnum.BAD], fill: "#ef4444" },
-  ].filter((d) => d.value > 0)
+    {
+      key: ReviewEnum.EXCELLENT,
+      name: "Excelente",
+      value: reviewCounts[ReviewEnum.EXCELLENT],
+      fill: "#22c55e",
+    },
+    {
+      key: ReviewEnum.GOOD,
+      name: "Buena",
+      value: reviewCounts[ReviewEnum.GOOD],
+      fill: "#3b82f6",
+    },
+    {
+      key: ReviewEnum.BAD,
+      name: "Mala",
+      value: reviewCounts[ReviewEnum.BAD],
+      fill: "#ef4444",
+    },
+  ].filter((d) => d.value > 0);
 
-  const totalReviews = allReviews.length
-  const reviewsWithTotal = reviewPieData.map((item) => ({ ...item, total: totalReviews }))
-  const { avg, filled } = toStars(allReviews)
-  const subCountsMap = getSubcategoryCounts(allSubCategories)
+  const totalReviews = allReviews.length;
+  const reviewsWithTotal = reviewPieData.map((item) => ({
+    ...item,
+    total: totalReviews,
+  }));
+  const { avg, filled } = toStars(allReviews);
+  const subCountsMap = getSubcategoryCounts(allSubCategories);
   const orderedSubs: SubCategroriesEnum[] = [
     SubCategroriesEnum.PUNCTUALITY,
     SubCategroriesEnum.QUALITY,
     SubCategroriesEnum.PRICE,
     SubCategroriesEnum.ATTITUDE,
     SubCategroriesEnum.CLARITY,
-  ]
+  ];
   const orderedSubEntries = orderedSubs
-    .map((k) => [k, (subCountsMap as Record<string, number>)[k] ?? 0] as [SubCategroriesEnum, number])
-    .filter(([, v]) => v > 0)
+    .map(
+      (k) =>
+        [k, (subCountsMap as Record<string, number>)[k] ?? 0] as [
+          SubCategroriesEnum,
+          number
+        ]
+    )
+    .filter(([, v]) => v > 0);
 
-  const COLORS = ["#60a5fa", "#a78bfa", "#f472b6", "#fb923c", "#34d399", "#22d3ee", "#fbbf24", "#f87171"]
+  const COLORS = [
+    "#60a5fa",
+    "#a78bfa",
+    "#f472b6",
+    "#fb923c",
+    "#34d399",
+    "#22d3ee",
+    "#fbbf24",
+    "#f87171",
+  ];
 
   const filterChips = [
     {
@@ -244,7 +400,7 @@ export const MechanicDashboard = () => {
       icon: Clock,
       color: "orange",
     },
-  ]
+  ];
 
   if (loading) {
     return (
@@ -258,7 +414,7 @@ export const MechanicDashboard = () => {
           <div className="h-[400px] bg-accent/50 rounded-3xl animate-pulse" />
         </div>
       </Container>
-    )
+    );
   }
 
   return (
@@ -266,15 +422,19 @@ export const MechanicDashboard = () => {
       <div className="flex flex-col gap-6 p-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Análisis y estadísticas de tu taller</p>
+          <p className="text-muted-foreground">
+            Análisis y estadísticas de tu taller
+          </p>
         </div>
 
         <div className="bg-card rounded-3xl p-4 shadow-sm border border-border/50">
-          <p className="text-sm text-muted-foreground mb-3 px-2">Selecciona las secciones que deseas visualizar</p>
+          <p className="text-sm text-muted-foreground mb-3 px-2">
+            Selecciona las secciones que deseas visualizar
+          </p>
           <div className="flex flex-wrap gap-3">
             {filterChips.map((chip) => {
-              const Icon = chip.icon
-              const isActive = visibleSections.has(chip.id)
+              const Icon = chip.icon;
+              const isActive = visibleSections.has(chip.id);
               return (
                 <button
                   key={chip.id}
@@ -302,11 +462,15 @@ export const MechanicDashboard = () => {
                   <div
                     className={`
                     w-2 h-2 rounded-full transition-all duration-300
-                    ${isActive ? "bg-current scale-100" : "bg-transparent scale-0"}
+                    ${
+                      isActive
+                        ? "bg-current scale-100"
+                        : "bg-transparent scale-0"
+                    }
                   `}
                   />
                 </button>
-              )
+              );
             })}
           </div>
         </div>
@@ -319,8 +483,12 @@ export const MechanicDashboard = () => {
                   <Wrench className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">Servicios más solicitados</h2>
-                  <p className="text-sm text-muted-foreground">Cantidad de turnos por servicio</p>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Servicios más solicitados
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Cantidad de turnos por servicio
+                  </p>
                 </div>
               </div>
               {servicesChartData.length > 0 ? (
@@ -370,13 +538,20 @@ export const MechanicDashboard = () => {
                   <Package className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">Consumo de stock de repuestos</h2>
-                  <p className="text-sm text-muted-foreground">Unidades consumidas por repuesto</p>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Consumo de stock de repuestos
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Unidades consumidas por repuesto
+                  </p>
                 </div>
               </div>
               {sparePartsConsumption.length > 0 ? (
                 <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={sparePartsConsumption} margin={{ top: 20, right: 20, bottom: 60, left: 20 }}>
+                  <BarChart
+                    data={sparePartsConsumption}
+                    margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
+                  >
                     <defs>
                       {COLORS.map((color, index) => (
                         <linearGradient
@@ -387,8 +562,16 @@ export const MechanicDashboard = () => {
                           x2="0"
                           y2="1"
                         >
-                          <stop offset="0%" stopColor={color} stopOpacity={0.9} />
-                          <stop offset="100%" stopColor={color} stopOpacity={0.6} />
+                          <stop
+                            offset="0%"
+                            stopColor={color}
+                            stopOpacity={0.9}
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor={color}
+                            stopOpacity={0.6}
+                          />
                         </linearGradient>
                       ))}
                     </defs>
@@ -397,12 +580,22 @@ export const MechanicDashboard = () => {
                       angle={-45}
                       textAnchor="end"
                       height={80}
-                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                      tick={{
+                        fill: "hsl(var(--muted-foreground))",
+                        fontSize: 11,
+                      }}
                       stroke="hsl(var(--border))"
                       className="fill-foreground"
                     />
-                    <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--border))" className="fill-foreground" />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--accent))", opacity: 0.1 }} />
+                    <YAxis
+                      tick={{ fill: "hsl(var(--muted-foreground))" }}
+                      stroke="hsl(var(--border))"
+                      className="fill-foreground"
+                    />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ fill: "hsl(var(--accent))", opacity: 0.1 }}
+                    />
                     <Bar
                       dataKey="value"
                       radius={[12, 12, 0, 0]}
@@ -438,8 +631,12 @@ export const MechanicDashboard = () => {
                 <Star className="h-5 w-5 text-yellow-500" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Reseñas del taller</h2>
-                <p className="text-sm text-muted-foreground">Distribución de opiniones y puntaje promedio</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Reseñas del taller
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Distribución de opiniones y puntaje promedio
+                </p>
               </div>
             </div>
             {totalReviews > 0 ? (
@@ -473,29 +670,45 @@ export const MechanicDashboard = () => {
                       {renderCenterLabel(totalReviews, "Reseñas")}
                     </PieChart>
                   </ResponsiveContainer>
-                  <CustomLegend data={reviewPieData} colors={reviewPieData.map((d) => d.fill)} />
+                  <CustomLegend
+                    data={reviewPieData}
+                    colors={reviewPieData.map((d) => d.fill)}
+                  />
                 </div>
                 <div className="space-y-4">
                   <div className="bg-accent/30 rounded-2xl p-4">
-                    <p className="text-sm text-muted-foreground mb-2">Calificación promedio</p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Calificación promedio
+                    </p>
                     <div className="flex items-center gap-2">
                       {[0, 1, 2, 3, 4].map((i) => (
                         <Star
                           key={i}
-                          className={`h-6 w-6 ${i < filled ? "text-yellow-500" : "text-muted-foreground/30"}`}
+                          className={`h-6 w-6 ${
+                            i < filled
+                              ? "text-yellow-500"
+                              : "text-muted-foreground/30"
+                          }`}
                           fill={i < filled ? "currentColor" : "none"}
                         />
                       ))}
-                      <span className="text-2xl font-bold text-foreground ml-2">{avg.toFixed(1)}</span>
+                      <span className="text-2xl font-bold text-foreground ml-2">
+                        {avg.toFixed(1)}
+                      </span>
                       <span className="text-muted-foreground">/5</span>
                     </div>
                   </div>
                   {orderedSubEntries.length > 0 && (
                     <div className="bg-accent/30 rounded-2xl p-4">
-                      <p className="text-sm text-muted-foreground mb-3">Aspectos destacados</p>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Aspectos destacados
+                      </p>
                       <div className="flex flex-wrap gap-2">
                         {orderedSubEntries.map(([k, v]) => (
-                          <div key={k} className="bg-card px-3 py-1.5 rounded-full border border-border/50">
+                          <div
+                            key={k}
+                            className="bg-card px-3 py-1.5 rounded-full border border-border/50"
+                          >
                             <span className="text-xs font-medium text-foreground">
                               {subLabel(k)}: {v}
                             </span>
@@ -521,27 +734,43 @@ export const MechanicDashboard = () => {
                 <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-foreground">Horarios más concurridos del taller</h2>
-                <p className="text-sm text-muted-foreground">Cantidad de turnos por franja horaria (8:00 - 17:00)</p>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Horarios más concurridos del taller
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Cantidad de turnos por franja horaria (8:00 - 17:00)
+                </p>
               </div>
             </div>
             {busyHoursData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={busyHoursData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border))"
+                    opacity={0.3}
+                  />
                   <XAxis
                     dataKey="time"
                     angle={-45}
                     textAnchor="end"
                     height={80}
-                    tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                    tick={{
+                      fill: "hsl(var(--muted-foreground))",
+                      fontSize: 11,
+                    }}
+                    className="fill-foreground"
                   />
                   <YAxis
                     domain={[
                       0,
-                      Math.max(...busyHoursData.map((item) => item.appointments)) < 5
+                      Math.max(
+                        ...busyHoursData.map((item) => item.appointments)
+                      ) < 5
                         ? 5
-                        : Math.max(...busyHoursData.map((item) => item.appointments)),
+                        : Math.max(
+                            ...busyHoursData.map((item) => item.appointments)
+                          ),
                     ]}
                   />
                   <Tooltip
@@ -552,7 +781,13 @@ export const MechanicDashboard = () => {
                       color: "hsl(var(--foreground))",
                     }}
                   />
-                  <Area type="monotone" dataKey="appointments" stroke="#fb923c" fill="#fdba74" name="Turnos" />
+                  <Area
+                    type="monotone"
+                    dataKey="appointments"
+                    stroke="#fb923c"
+                    fill="#fdba74"
+                    name="Turnos"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
@@ -562,7 +797,131 @@ export const MechanicDashboard = () => {
             )}
           </div>
         )}
+        <div className="bg-card rounded-3xl p-6 shadow-sm border border-border/50">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-3 bg-green-500/10 rounded-2xl">
+              <Wrench className="h-5 w-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">
+                Crecimiento de servicios
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Comparación de demanda de servicios respecto del mes pasado
+              </p>
+            </div>
+          </div>
+
+          {serviceGrowth.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={serviceGrowth}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="serviceName"
+                  angle={-45}
+                  textAnchor="end"
+                  height={100}
+                  tick={{ fill: "hsl(var(-foreground))", fontSize: 11 }}
+                  className="fill-foreground"
+                />
+                <YAxis />
+                <Tooltip content={<ServiceGrowthTooltip />} />
+                <Bar
+                  dataKey="growth"
+                  fill="#34d399"
+                  radius={[8, 8, 0, 0]}
+                  name="Crecimiento (%)"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              No hay datos de crecimiento disponibles
+            </div>
+          )}
+        </div>
+        <div className="bg-card rounded-3xl p-6 shadow-sm border border-border/50">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-500/10 rounded-2xl">
+                <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  Evolución de turnos reservados
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Cantidad de turnos en el periodo seleccionado
+                </p>
+              </div>
+            </div>
+
+            <select
+              value={timeRange}
+              onChange={(e) =>
+                setTimeRange(e.target.value as "week" | "two_weeks" | "month")
+              }
+              className="mt-3 sm:mt-0 border border-border rounded-xl px-3 py-1.5 bg-background text-sm"
+            >
+              <option value="week">Última semana</option>
+              <option value="two_weeks">Últimas dos semanas</option>
+              <option value="month">Último mes</option>
+            </select>
+          </div>
+
+          {appointmentTrends.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={appointmentTrends}>
+                <defs>
+                  <linearGradient id="colorTurnos" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#60a5fa" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#60a5fa" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="hsl(var(--border))"
+                  opacity={0.3}
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  className="fill-foreground"
+                />
+                <YAxis allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "12px",
+                    color: "hsl(var(--foreground))",
+                  }}
+                  formatter={(value: number) => `${value} turnos`}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#60a5fa"
+                  strokeWidth={2}
+                  fill="url(#colorTurnos)"
+                  name="Turnos"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[300px] text-muted-foreground">
+              No hay datos de turnos disponibles
+            </div>
+          )}
+        </div>
       </div>
     </Container>
-  )
-}
+  );
+};
