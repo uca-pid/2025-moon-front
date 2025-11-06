@@ -151,7 +151,7 @@ export function MechanicGoals() {
                     </SelectContent>
                   </Select>
                 </div>
-                {newGoal.type === GoalType.SERVICE && (
+                {newGoal.type === 'service' && (
                   <div>
                     <Label className='mb-2 block'>Servicio</Label>
                     <Select
