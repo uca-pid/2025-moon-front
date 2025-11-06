@@ -23,7 +23,7 @@ import {
   Bar,
   type TooltipProps,
 } from "recharts";
-import { Wrench, Package, Clock, Star } from "lucide-react";
+import { Wrench, Package, Clock, Star, TrendingUp } from "lucide-react";
 import type { Service, SparePartService } from "@/types/services.types";
 import type { Appointment } from "@/types/appointments.types";
 import { getReviews } from "@/services/users";
@@ -101,7 +101,11 @@ const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
   };
 
   const data = payload[0] as unknown as PayloadType;
-  const total = payload.reduce((acc, curr) => acc + (curr.value ?? 0), 0);
+  const totalFromDatum = data.payload?.total;
+  const total =
+    typeof totalFromDatum === "number" && totalFromDatum > 0
+      ? totalFromDatum
+      : payload.reduce((acc, curr) => acc + (curr.value ?? 0), 0);
   const value = data.value ?? 0;
   const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
   const title = data.payload?.name ?? data.name ?? "";
@@ -170,7 +174,13 @@ const renderCenterLabel = (total: number, label: string) => {
   );
 };
 
-type DashboardSection = "services" | "stock" | "reviews" | "hours";
+type DashboardSection =
+  | "services"
+  | "stock"
+  | "reviews"
+  | "hours"
+  | "growth"
+  | "trends";
 
 export const MechanicDashboard = () => {
   const { user } = useStore();
@@ -182,7 +192,7 @@ export const MechanicDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   const [visibleSections, setVisibleSections] = useState<Set<DashboardSection>>(
-    new Set(["services", "stock", "reviews", "hours"])
+    new Set(["services", "stock", "reviews", "hours", "growth", "trends"])
   );
   const [serviceGrowth, setServiceGrowth] = useState<
     {
@@ -276,6 +286,15 @@ export const MechanicDashboard = () => {
       return acc;
     }, [] as { name: string; value: number }[])
     .sort((a, b) => b.value - a.value);
+
+  const totalSpareParts = sparePartsConsumption.reduce(
+    (acc, item) => acc + item.value,
+    0
+  );
+  const sparePartsWithTotal = sparePartsConsumption.map((item) => ({
+    ...item,
+    total: totalSpareParts,
+  }));
 
   const timeSlots = [];
   for (let hour = 8; hour <= 17; hour++) {
@@ -375,6 +394,12 @@ export const MechanicDashboard = () => {
     "#f87171",
   ];
 
+  const COLORS_REVIEW = [
+    "#22c55e",
+    "#3b82f6",
+    "#ef4444",
+  ];
+
   const filterChips = [
     {
       id: "services" as DashboardSection,
@@ -399,6 +424,18 @@ export const MechanicDashboard = () => {
       label: "Horarios",
       icon: Clock,
       color: "orange",
+    },
+    {
+      id: "growth" as DashboardSection,
+      label: "Crecimiento",
+      icon: TrendingUp,
+      color: "green",
+    },
+    {
+      id: "trends" as DashboardSection,
+      label: "Turnos",
+      icon: Clock,
+      color: "cyan",
     },
   ];
 
@@ -495,6 +532,29 @@ export const MechanicDashboard = () => {
                 <div className="flex flex-col items-center">
                   <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
+                      <defs>
+                        {COLORS.map((color, index) => (
+                          <linearGradient
+                            key={`gradient-${index}`}
+                            id={`pieGradient-${index}`}
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stopColor={color}
+                              stopOpacity={0.9}
+                            />
+                            <stop
+                              offset="100%"
+                              stopColor={color}
+                              stopOpacity={0.6}
+                            />
+                          </linearGradient>
+                        ))}
+                      </defs>
                       <Pie
                         data={servicesWithTotal}
                         cx="50%"
@@ -510,7 +570,7 @@ export const MechanicDashboard = () => {
                         {servicesWithTotal.map((_, index) => (
                           <Cell
                             key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
+                            fill={`url(#pieGradient-${index % COLORS.length})`}
                             className="hover:opacity-80 transition-opacity shadow-md"
                             stroke="none"
                             strokeWidth={0}
@@ -549,7 +609,7 @@ export const MechanicDashboard = () => {
               {sparePartsConsumption.length > 0 ? (
                 <ResponsiveContainer width="100%" height={320}>
                   <BarChart
-                    data={sparePartsConsumption}
+                    data={sparePartsWithTotal}
                     margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
                   >
                     <defs>
@@ -603,7 +663,7 @@ export const MechanicDashboard = () => {
                       animationDuration={800}
                       animationEasing="ease-out"
                     >
-                      {sparePartsConsumption.map((_, index) => (
+                      {sparePartsWithTotal.map((_, index) => (
                         <Cell
                           key={`bar-cell-${index}`}
                           fill={`url(#barGradient-${index % COLORS.length})`}
@@ -642,38 +702,69 @@ export const MechanicDashboard = () => {
             {totalReviews > 0 ? (
               <div className="grid md:grid-cols-2 gap-8 items-center">
                 <div className="flex flex-col items-center">
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={reviewsWithTotal}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={70}
-                        outerRadius={100}
-                        paddingAngle={3}
-                        dataKey="value"
-                        animationBegin={0}
-                        animationDuration={800}
-                        animationEasing="ease-out"
-                      >
-                        {reviewsWithTotal.map((entry, index) => (
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <defs>
+                      {COLORS_REVIEW.map((color, index) => (
+                        <linearGradient
+                          key={`gradient-${index}`}
+                          id={`pieGradientReview-${index}`}
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+                          <stop offset="100%" stopColor={color} stopOpacity={0.6} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+
+                    <Pie
+                      data={reviewsWithTotal}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={100}
+                      paddingAngle={3}
+                      dataKey="value"
+                      animationBegin={0}
+                      animationDuration={800}
+                      animationEasing="ease-out"
+                    >
+                      {reviewsWithTotal.map((entry, index) => {
+                        let colorId;
+                        switch (entry.name) {
+                          case "EXCELENTE":
+                            colorId = 0;
+                            break;
+                          case "BUENO":
+                            colorId = 1;
+                            break;
+                          case "MALO":
+                            colorId = 2;
+                            break;
+                          default:
+                            colorId = index % COLORS_REVIEW.length;
+                        }
+                        return (
                           <Cell
                             key={`review-cell-${index}`}
-                            fill={entry.fill}
+                            fill={`url(#pieGradientReview-${colorId})`}
                             className="hover:opacity-80 transition-opacity shadow-md"
                             stroke="none"
                             strokeWidth={0}
                           />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      {renderCenterLabel(totalReviews, "Reseñas")}
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <CustomLegend
-                    data={reviewPieData}
-                    colors={reviewPieData.map((d) => d.fill)}
-                  />
+                        );
+                      })}
+                    </Pie>
+
+                    <Tooltip content={<CustomTooltip />} />
+                    {renderCenterLabel(totalReviews, "Reseñas")}
+                  </PieChart>
+                </ResponsiveContainer>
+                <CustomLegend data={reviewsWithTotal} colors={COLORS_REVIEW} />
+
                 </div>
                 <div className="space-y-4">
                   <div className="bg-accent/30 rounded-2xl p-4">
@@ -745,6 +836,12 @@ export const MechanicDashboard = () => {
             {busyHoursData.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={busyHoursData}>
+                  <defs>
+                    <linearGradient id="colorHorarios" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={COLORS[3]} stopOpacity={0.4} />
+                      <stop offset="95%" stopColor={COLORS[3]} stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     stroke="hsl(var(--border))"
@@ -784,9 +881,9 @@ export const MechanicDashboard = () => {
                   <Area
                     type="monotone"
                     dataKey="appointments"
-                    stroke="#fb923c"
-                    fill="#fdba74"
-                    name="Turnos"
+                    stroke={COLORS[3]}
+                    fill={`url(#colorHorarios)`}
+                    name="Horarios"
                   />
                 </AreaChart>
               </ResponsiveContainer>
@@ -797,7 +894,8 @@ export const MechanicDashboard = () => {
             )}
           </div>
         )}
-        <div className="bg-card rounded-3xl p-6 shadow-sm border border-border/50">
+        {visibleSections.has("growth") && (
+        <div className="bg-card rounded-3xl p-6 shadow-sm border border-border/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-green-500/10 rounded-2xl">
               <Wrench className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -813,8 +911,26 @@ export const MechanicDashboard = () => {
           </div>
 
           {serviceGrowth.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={serviceGrowth}>
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart
+                data={serviceGrowth}
+                margin={{ top: 20, right: 20, bottom: 60, left: 20 }}
+              >
+                <defs>
+                  {COLORS.map((color, index) => (
+                    <linearGradient
+                      key={`growth-gradient-${index}`}
+                      id={`growthBarGradient-${index}`}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+                      <stop offset="100%" stopColor={color} stopOpacity={0.6} />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   stroke="hsl(var(--border))"
@@ -824,18 +940,30 @@ export const MechanicDashboard = () => {
                   dataKey="serviceName"
                   angle={-45}
                   textAnchor="end"
-                  height={100}
-                  tick={{ fill: "hsl(var(-foreground))", fontSize: 11 }}
+                  height={80}
+                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                   className="fill-foreground"
                 />
-                <YAxis />
-                <Tooltip content={<ServiceGrowthTooltip />} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--border))" className="fill-foreground" />
+                <Tooltip content={<ServiceGrowthTooltip />} cursor={{ fill: "hsl(var(--accent))", opacity: 0.1 }} />
                 <Bar
                   dataKey="growth"
-                  fill="#34d399"
-                  radius={[8, 8, 0, 0]}
+                  radius={[12, 12, 0, 0]}
+                  animationBegin={0}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                   name="Crecimiento (%)"
-                />
+                >
+                  {serviceGrowth.map((_, index) => (
+                    <Cell
+                      key={`growth-bar-cell-${index}`}
+                      fill={`url(#growthBarGradient-${index % COLORS.length})`}
+                      className="hover:opacity-80 transition-opacity shadow-md"
+                      stroke="none"
+                      strokeWidth={0}
+                    />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -844,7 +972,9 @@ export const MechanicDashboard = () => {
             </div>
           )}
         </div>
-        <div className="bg-card rounded-3xl p-6 shadow-sm border border-border/50">
+        )}
+        {visibleSections.has("trends") && (
+        <div className="bg-card rounded-3xl p-6 shadow-sm border border-border/50 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-blue-500/10 rounded-2xl">
@@ -921,6 +1051,7 @@ export const MechanicDashboard = () => {
             </div>
           )}
         </div>
+        )}
       </div>
     </Container>
   );
