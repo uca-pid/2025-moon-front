@@ -399,8 +399,9 @@ export const MechanicDashboard = () => {
                       height={80}
                       tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
                       stroke="hsl(var(--border))"
+                      className="fill-foreground"
                     />
-                    <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--border))" />
+                    <YAxis tick={{ fill: "hsl(var(--muted-foreground))" }} stroke="hsl(var(--border))" className="fill-foreground" />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--accent))", opacity: 0.1 }} />
                     <Bar
                       dataKey="value"
