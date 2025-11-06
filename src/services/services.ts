@@ -1,3 +1,4 @@
+import type { ServiceGrowth } from "@/types/dashboards.types";
 import type { PaginatedQueryDto } from "@/types/paginated.types";
 import type { CreateService } from "@/types/services.types";
 import { del, get, post, put } from "@/utils/rest-api";
@@ -31,5 +32,12 @@ export const getClientDashboardStats = () => {
 };
 
 export const getRequestedServicesByMechanicId = () => {
-  return get(`/services/requested-services`)
-}
+  return get(`/services/requested-services`);
+};
+
+export const getTopGrowingServices = (
+  days?: number
+): Promise<ServiceGrowth[]> => {
+  const params = days ? { days } : undefined;
+  return get(`/services/stats/mechanic/growth`, { params });
+};
