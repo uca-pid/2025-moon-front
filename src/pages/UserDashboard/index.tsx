@@ -1,34 +1,15 @@
-import { useEffect, useState } from "react";
-import {
-  TrendingUp,
-  BarChart3,
-  Calendar,
-  Clock,
-  Car,
-  Store,
-} from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  XAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
-import { Badge } from "@/components/ui/badge";
-import {
-  getClientDashboardStats,
-  getClientHistoryAppointments,
-} from "@/services/dashboards.ts";
-import type { DashboardStats } from "@/types/dashboards.types";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Container } from "@/components/Container";
+import { useEffect, useState } from "react"
+import { TrendingUp, BarChart3, Calendar, Clock, Car, Store } from "lucide-react"
+import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer, YAxis } from "recharts"
+import { Badge } from "@/components/ui/badge"
+import { getClientDashboardStats, getClientHistoryAppointments } from "@/services/dashboards"
+import type { DashboardStats } from "@/types/dashboards.types"
+import type { Appointment } from "@/types/appointments.types"
+import type { Service } from "@/types/services.types"
+import type { PaginatedQueryDto } from "@/types/paginated.types"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Container } from "@/components/Container"
+import { CustomPagination } from "@/components/CustomPagination"
 
 const VEHICLE_COLORS: Record<string, string> = {};
 const COLOR_PALETTE = [
@@ -52,11 +33,17 @@ function getVehicleColor(vehiclePlate: string): string {
 }
 
 export function UserDashboard() {
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [history, setHistory] = useState<any[]>([]);
-  const [mode, setMode] = useState<"count" | "totalCost">("count");
-  const [loading, setLoading] = useState(true);
-  const [loadingHistory, setLoadingHistory] = useState(true);
+  type ChartEntry = { service: string } & Record<string, number>
+  type TooltipPayloadItem = { dataKey: string; value: number; payload: ChartEntry }
+
+  const [chartData, setChartData] = useState<ChartEntry[]>([])
+  const [history, setHistory] = useState<Appointment[]>([])
+  const [mode, setMode] = useState<"count" | "totalCost">("count")
+  const [loading, setLoading] = useState(true)
+  const [loadingHistory, setLoadingHistory] = useState(true)
+
+  const [page, setPage] = useState(1)
+  const itemsPerPage = 5
 
   useEffect(() => {
     const loadData = async () => {
@@ -64,8 +51,8 @@ export function UserDashboard() {
         setLoading(true);
         const data: DashboardStats[] = await getClientDashboardStats();
 
-        const formatted = data.map((item) => {
-          const entry: any = { service: item.serviceName };
+        const formatted: ChartEntry[] = data.map((item) => {
+          const entry: ChartEntry = { service: item.serviceName } as ChartEntry
           item.vehicles.forEach((v) => {
             entry[v.vehiclePlate] = mode === "count" ? v.count : v.totalCost;
           });
@@ -86,9 +73,9 @@ export function UserDashboard() {
   useEffect(() => {
     const loadHistory = async () => {
       try {
-        setLoadingHistory(true);
-        const data = await getClientHistoryAppointments();
-        setHistory(data);
+        setLoadingHistory(true)
+        const data: Appointment[] = await getClientHistoryAppointments()
+        setHistory(data)
       } catch (error) {
         console.error("Error cargando historial de servicios:", error);
       } finally {
@@ -99,17 +86,27 @@ export function UserDashboard() {
     loadHistory();
   }, []);
 
-  const vehicleKeys = chartData.length
-    ? Object.keys(chartData[0]).filter((k) => k !== "service")
-    : [];
+  const vehicleKeys = chartData.length ? Object.keys(chartData[0]).filter((k) => k !== "service") : []
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  const totalItems = history.length
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const startIndex = (page - 1) * itemsPerPage
+  const historySorted = history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  const paginatedHistory = historySorted.slice(startIndex, startIndex + itemsPerPage)
+  const isFirstPage = page <= 1
+  const isLastPage = totalPages === 0 ? true : page >= totalPages
+  const goPrev = () => setPage((prev) => Math.max(1, prev - 1))
+  const goNext = () => setPage((prev) => (totalPages === 0 ? prev : Math.min(totalPages, prev + 1)))
+  const goToPage = (p: number) => setPage(p)
+  const pagination: PaginatedQueryDto = { page, pageSize: itemsPerPage, search: "", orderBy: "", orderDir: "" }
+
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: TooltipPayloadItem[] }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
         <div className="bg-card border border-border rounded-2xl shadow-lg px-4 py-3 animate-in fade-in zoom-in-95 duration-200">
           <p className="font-semibold mb-2 text-foreground">{data.service}</p>
-          {payload.map((p: any) => (
+          {payload.map((p) => (
             <div key={p.dataKey} className="flex items-center gap-2 text-sm">
               <div
                 className="w-3 h-3 rounded-full"
@@ -213,10 +210,13 @@ export function UserDashboard() {
                       height={80}
                       className="fill-foreground"
                     />
-                    <Tooltip
-                      content={<CustomTooltip />}
-                      cursor={{ fill: "hsl(var(--accent))", opacity: 0.1 }}
+                    <YAxis
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
+                      className="fill-foreground"
                     />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--accent))", opacity: 0.1 }} />
                     {vehicleKeys.map((key, idx) => (
                       <Bar
                         key={key}
@@ -270,7 +270,7 @@ export function UserDashboard() {
             </div>
           ) : history.length > 0 ? (
             <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              {history.map((h, idx) => (
+              {paginatedHistory.map((h, idx) => (
                 <div
                   key={h.id}
                   className="bg-accent/30 rounded-2xl p-4 hover:bg-accent/50 transition-all duration-300 animate-in fade-in slide-in-from-left-4 border border-border/30"
@@ -328,12 +328,8 @@ export function UserDashboard() {
                         Servicios
                       </p>
                       <div className="flex flex-wrap gap-1">
-                        {h.services.map((s: any) => (
-                          <Badge
-                            key={s.id}
-                            variant="secondary"
-                            className="rounded-full text-xs"
-                          >
+                        {h.services.map((s: Service) => (
+                          <Badge key={s.id} variant="secondary" className="rounded-full text-xs">
                             {s.name}
                           </Badge>
                         ))}
@@ -348,12 +344,21 @@ export function UserDashboard() {
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4">
                 <Calendar className="h-10 w-10 text-primary" />
               </div>
-              <p className="text-lg font-medium text-foreground mb-2">
-                No hay servicios registrados
-              </p>
-              <p className="text-sm text-muted-foreground">
-                El historial aparecerá cuando se completen turnos
-              </p>
+              <p className="text-lg font-medium text-foreground mb-2">No hay servicios registrados</p>
+              <p className="text-sm text-muted-foreground">El historial aparecerá cuando se completen turnos</p>
+            </div>
+          )}
+          {history.length > itemsPerPage && (
+            <div className="mt-6 flex justify-center">
+              <CustomPagination
+                goPrev={goPrev}
+                isFirstPage={isFirstPage}
+                totalPages={totalPages}
+                pagination={pagination}
+                goToPage={goToPage}
+                goNext={goNext}
+                isLastPage={isLastPage}
+              />
             </div>
           )}
         </div>
