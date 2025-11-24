@@ -47,6 +47,7 @@ import {
   getMechanicRankingPublic,
   getTopWorkshopsRanking,
 } from "@/services/ranking";
+import { getAvailableCoupons } from "@/services/coupons";
 
 export function Reserve() {
   const [workshop, setWorkshop] = useState<string>("");
@@ -62,6 +63,10 @@ export function Reserve() {
     useState<MechanicRanking | null>(null);
   const [showRankingModal, setShowRankingModal] = useState(false);
   const [topRanking, setTopRanking] = useState<MechanicRanking[]>([]);
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [selectedCouponOption, setSelectedCouponOption] = useState<
+    "none" | string
+  >("none");
 
   const navigate = useNavigate();
 
@@ -107,26 +112,63 @@ export function Reserve() {
     };
     fetchData();
   }, []);
+
   useEffect(() => {
     setSelectedServices([]);
+    setAvailableCoupons([]);
+    setSelectedCouponOption("none");
 
     if (!workshop) {
       setServices([]);
       setMechanicRanking(null);
       return;
     }
+
     getServicesByMechanicId(Number(workshop))
       .then(setServices)
       .catch(() => {
         setServices([]);
         toast.error("Error al cargar los servicios");
       });
+
     getMechanicRankingPublic(Number(workshop))
       .then(setMechanicRanking)
       .catch(() => {
         setMechanicRanking(null);
       });
+
+    getAvailableCoupons(Number(workshop))
+      .then((res) => {
+        if (res.hasCoupons && Array.isArray(res.coupons)) {
+          setAvailableCoupons(res.coupons);
+          setSelectedCouponOption("none");
+        } else {
+          setAvailableCoupons([]);
+          setSelectedCouponOption("none");
+        }
+      })
+      .catch(() => {
+        setAvailableCoupons([]);
+        setSelectedCouponOption("none");
+      });
   }, [workshop]);
+
+  const appliedCoupon =
+    selectedCouponOption !== "none"
+      ? availableCoupons.find(
+          (c) => c.id?.toString() === selectedCouponOption
+        ) ?? null
+      : null;
+
+  const baseTotal = selectedServices
+    .map((id) => services.find((s) => s.id.toString() === id)?.price ?? 0)
+    .reduce((a, b) => a + b, 0);
+
+  const finalTotal = appliedCoupon
+    ? Math.round(
+        baseTotal - (baseTotal * (appliedCoupon.discountPercentage ?? 0)) / 100
+      )
+    : baseTotal;
 
   const handleCreateAppointment = async () => {
     const appointment: CreateAppointment = {
@@ -135,6 +177,10 @@ export function Reserve() {
       serviceIds: selectedServices.map((s) => Number(s)),
       workshopId: Number(workshop),
       vehicleId: Number(selectedVehicle),
+      couponCode:
+        appliedCoupon && selectedCouponOption !== "none"
+          ? String(appliedCoupon.id)
+          : null,
     };
     try {
       await createAppointment(appointment);
@@ -143,6 +189,9 @@ export function Reserve() {
       setSelectedServices([]);
       setDate(undefined);
       setTime("");
+      setSelectedVehicle("");
+      setAvailableCoupons([]);
+      setSelectedCouponOption("none");
       navigate("/appointments");
     } catch {
       toast.error("No se pudo reservar el turno");
@@ -298,7 +347,6 @@ export function Reserve() {
                               {workshop.address}
                             </span>
 
-                            {/* ESTRELLAS */}
                             <div className="flex items-center gap-1 text-foreground/80">
                               {(() => {
                                 const { avg, filled } = toStars(
@@ -661,6 +709,74 @@ export function Reserve() {
                             );
                           })}
                         </div>
+                      </div>
+                    </div>
+                  )}
+                  {workshop && (
+                    <div className="flex items-start gap-4 p-4 rounded-2xl bg-card shadow-sm">
+                      <div className="p-2 rounded-xl bg-gradient-to-br from-yellow-500/10 to-yellow-600/10">
+                        <Sparkles className="h-4 w-4 text-yellow-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium mb-1">
+                          Cupón de descuento
+                        </p>
+                        {availableCoupons.length === 0 ? (
+                          <p className="text-sm text-muted-foreground">
+                            No hay cupones disponibles para este taller.
+                          </p>
+                        ) : (
+                          <div className="space-y-2">
+                            <Select
+                              value={selectedCouponOption}
+                              onValueChange={setSelectedCouponOption}
+                            >
+                              <SelectTrigger className="w-full rounded-xl border-gray-200 hover:border-gray-300">
+                                <SelectValue placeholder="Seleccioná una opción" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                <SelectItem value="none" className="rounded-lg">
+                                  No usar cupón
+                                </SelectItem>
+                                {availableCoupons.map((coupon) => (
+                                  <SelectItem
+                                    key={coupon.id}
+                                    value={coupon.id.toString()}
+                                    className="rounded-lg"
+                                  >
+                                    Cupón {coupon.discountPercentage}% OFF ·
+                                    vence{" "}
+                                    {new Date(
+                                      coupon.expiresAt
+                                    ).toLocaleDateString("es-AR")}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  {baseTotal > 0 && (
+                    <div className="flex items-start gap-4 p-4 rounded-2xl bg-card shadow-sm">
+                      <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/10 to-purple-600/10">
+                        <CheckCircle className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium mb-1">Precio total</p>
+                        {appliedCoupon ? (
+                          <>
+                            <p className="text-xs text-muted-foreground line-through">
+                              ${baseTotal}
+                            </p>
+                            <p className="text-lg font-semibold text-green-600">
+                              ${finalTotal}
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-lg font-semibold">${baseTotal}</p>
+                        )}
                       </div>
                     </div>
                   )}
